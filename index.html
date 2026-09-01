@@ -3,32 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waveform | Mathematical Visualization Instrument</title>
+    <title>Waveform | Notebook Visualization</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Patrick+Hand&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg-deep: #050608;
-            --bg-panel: #080A0F;
-            --bg-surface: #0C1017;
-            --bg-surface-hover: #111620;
+            --paper-bg: #F7F3E8;
+            --paper-line: rgba(140, 165, 195, 0.22);
+            --margin-line: rgba(230, 110, 120, 0.38);
+            --ink-main: #1C2434;
+            --ink-blue: #2B4C7E;
+            --ink-pink: #E85D75;
+            --ink-purple: #5A4099;
+            --ink-subtle: #6C7A89;
             
-            --border-subtle: rgba(255, 255, 255, 0.06);
-            --border-focus: rgba(129, 140, 248, 0.4);
-            
-            --text-primary: #F0F3F8;
-            --text-secondary: #AAB3C2;
-            --text-muted: #687386;
-            
-            --accent: #818CF8;
-            --accent-glow: rgba(129, 140, 248, 0.25);
-            --accent-dim: rgba(129, 140, 248, 0.1);
-
-            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+            --font-hand: 'Caveat', cursive;
+            --font-print-hand: 'Patrick Hand', cursive;
             --font-math: 'Lora', Georgia, serif;
         }
 
@@ -42,508 +35,421 @@
         html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden;
-            background-color: var(--bg-deep);
-            color: var(--text-primary);
-            font-family: var(--font-ui);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--paper-bg);
+            color: var(--ink-main);
+            font-family: var(--font-hand);
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
-        body {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* HEADER */
-        header {
-            height: 54px;
-            background: var(--bg-panel);
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.5rem;
-            z-index: 100;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .brand-logo {
-            width: 18px;
-            height: 18px;
-            border: 1px solid var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .brand-logo::before {
-            content: '';
-            width: 8px;
-            height: 1px;
-            background: var(--accent);
-            box-shadow: 0 0 6px var(--accent);
-        }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .brand-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.18em;
-            color: var(--text-primary);
-            line-height: 1;
-        }
-
-        .brand-subtitle {
-            font-size: 0.55rem;
-            font-weight: 400;
-            letter-spacing: 0.12em;
-            color: var(--text-muted);
-            margin-top: 3px;
-        }
-
-        .header-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: var(--font-mono);
-            font-size: 0.65rem;
-            letter-spacing: 0.1em;
-            color: var(--text-secondary);
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: var(--accent);
-            box-shadow: 0 0 8px var(--accent);
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-
-        .status-dot.animating {
-            background-color: #38bdf8;
-            box-shadow: 0 0 8px #38bdf8;
-        }
-
-        .status-dot.morphing {
-            background-color: #c084fc;
-            box-shadow: 0 0 8px #c084fc;
-        }
-
-        /* MAIN APP LAYOUT */
-        main {
-            flex: 1;
-            display: flex;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* GRAPH CANVAS CONTAINER */
-        .viewport {
-            flex: 1;
-            position: relative;
-            background-color: var(--bg-deep);
-            cursor: grab;
-            overflow: hidden;
-        }
-
-        .viewport:active {
-            cursor: grabbing;
-        }
-
-        canvas {
-            display: block;
+        /* REALISTIC RULED NOTEBOOK BACKGROUND */
+        .notebook-paper {
+            min-height: 100vh;
             width: 100%;
-            height: 100%;
-        }
-
-        /* EQUATION OVERLAY */
-        .overlay-equation {
-            position: absolute;
-            top: 1.5rem;
-            left: 1.5rem;
-            pointer-events: none;
-            background: rgba(8, 10, 15, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border-subtle);
-            padding: 1rem 1.25rem;
+            position: relative;
+            background-color: var(--paper-bg);
+            background-image: 
+                repeating-linear-gradient(
+                    transparent,
+                    transparent 29px,
+                    var(--paper-line) 29px,
+                    var(--paper-line) 30px
+                );
+            background-attachment: local;
+            padding: 2.5rem 2rem 4rem 5rem;
             display: flex;
             flex-direction: column;
-            gap: 0.4rem;
+            align-items: center;
         }
 
-        .equation-display {
+        /* RED MARGIN LINE */
+        .notebook-paper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 3.75rem;
+            width: 2px;
+            background-color: var(--margin-line);
+            pointer-events: none;
+        }
+
+        /* PAGE CONTENT WRAPPER */
+        .content-container {
+            width: 100%;
+            max-width: 920px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* HEADER SECTION */
+        header {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .title-group {
+            position: relative;
+            display: inline-block;
+        }
+
+        h1.notebook-title {
+            font-family: var(--font-hand);
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: var(--ink-blue);
+            line-height: 1;
+            letter-spacing: 0.04em;
+            transform: rotate(-1deg);
+        }
+
+        .notebook-subtitle {
+            font-family: var(--font-print-hand);
+            font-size: 1.25rem;
+            color: var(--ink-subtle);
+            margin-top: 0.2rem;
+            margin-left: 0.2rem;
+        }
+
+        /* HAND-DRAWN UNDERLINE SVG */
+        .title-underline {
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 12px;
+            overflow: visible;
+        }
+
+        /* EQUATION SECTION */
+        .equation-area {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .main-equation {
             font-family: var(--font-math);
-            font-size: 1.15rem;
-            color: var(--text-primary);
+            font-size: 1.85rem;
+            color: var(--ink-main);
+            margin-bottom: 0.3rem;
             letter-spacing: 0.02em;
         }
 
-        .equation-display .k-highlight {
-            color: var(--accent);
-            font-weight: 500;
-            font-style: italic;
-            transition: color 0.2s;
-        }
-
-        .domain-display {
-            font-family: var(--font-mono);
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            letter-spacing: 0.08em;
-        }
-
-        /* TELEMETRY READOUT OVERLAY */
-        .overlay-telemetry {
-            position: absolute;
-            bottom: 1.5rem;
-            left: 1.5rem;
-            pointer-events: none;
-            display: flex;
-            gap: 2rem;
-            font-family: var(--font-mono);
-            background: rgba(8, 10, 15, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border-subtle);
-            padding: 0.75rem 1.25rem;
-        }
-
-        .telemetry-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
-        }
-
-        .telemetry-label {
-            font-size: 0.55rem;
-            letter-spacing: 0.12em;
-            color: var(--text-muted);
-        }
-
-        .telemetry-value {
-            font-size: 0.75rem;
-            color: var(--text-primary);
-            letter-spacing: 0.05em;
-        }
-
-        /* CONTROLS SIDE PANEL */
-        .panel {
-            width: 340px;
-            background: var(--bg-panel);
-            border-left: 1px solid var(--border-subtle);
-            display: flex;
-            flex-direction: column;
-            padding: 2rem 1.5rem;
-            gap: 2rem;
-            z-index: 10;
-        }
-
-        .panel-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .section-label {
-            font-size: 0.6rem;
+        .main-equation span.k-var {
+            color: var(--ink-pink);
             font-weight: 600;
-            letter-spacing: 0.15em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        /* K INPUT CONTROL */
-        .k-input-wrapper {
-            display: flex;
-            align-items: center;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            padding: 0.5rem 0.85rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .k-input-wrapper:focus-within {
-            border-color: var(--border-focus);
-            box-shadow: 0 0 12px var(--accent-glow);
-        }
-
-        .k-symbol {
-            font-family: var(--font-math);
             font-style: italic;
-            font-size: 1.1rem;
-            color: var(--accent);
-            margin-right: 0.75rem;
         }
 
-        .k-input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-family: var(--font-mono);
-            font-size: 1.1rem;
-            width: 100%;
-        }
-
-        /* SLIDER CUSTOMIZATION */
-        .range-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 3px;
-            background: var(--bg-surface-hover);
-            outline: none;
-            cursor: pointer;
-            margin-top: 0.5rem;
-        }
-
-        .range-slider::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 3px;
-            background: var(--bg-surface-hover);
-        }
-
-        .range-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 14px;
-            width: 14px;
-            border-radius: 0;
-            background: var(--accent);
-            cursor: pointer;
-            margin-top: -5.5px;
-            box-shadow: 0 0 10px var(--accent);
-            transition: transform 0.15s ease, background-color 0.15s ease;
-        }
-
-        .range-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.25);
-        }
-
-        .range-slider::-moz-range-track {
-            width: 100%;
-            height: 3px;
-            background: var(--bg-surface-hover);
-        }
-
-        .range-slider::-moz-range-thumb {
-            height: 14px;
-            width: 14px;
-            border: none;
-            border-radius: 0;
-            background: var(--accent);
-            cursor: pointer;
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        /* BUTTONS */
-        .btn-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .domain-note {
+            font-family: var(--font-hand);
+            font-size: 1.4rem;
+            color: var(--ink-blue);
+            display: inline-flex;
+            align-items: center;
             gap: 0.5rem;
         }
 
-        .btn {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            font-family: var(--font-ui);
-            font-size: 0.65rem;
+        /* GRAPH & ANNOTATIONS CONTAINER */
+        .graph-wrapper {
+            width: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* CANVAS STYLING */
+        canvas {
+            display: block;
+            background: transparent;
+            cursor: grab;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        /* SVG OVERLAY FOR ANNOTATIONS & HAND-DRAWN ARROWS */
+        .annotations-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* ANNOTATION TEXT PLACEMENT */
+        .annotation {
+            position: absolute;
+            font-family: var(--font-hand);
+            font-size: 1.35rem;
+            color: var(--ink-blue);
+            pointer-events: none;
+            line-height: 1.1;
+        }
+
+        .note-freq {
+            top: 15px;
+            right: 40px;
+            transform: rotate(3deg);
+            color: var(--ink-purple);
+        }
+
+        .note-waves {
+            bottom: 80px;
+            left: 20px;
+            transform: rotate(-4deg);
+            color: var(--ink-pink);
+        }
+
+        .note-heart {
+            top: 55px;
+            left: 50px;
+            transform: rotate(-2deg);
+        }
+
+        /* ECG HEARTBEAT FLOURISH */
+        .ecg-line {
+            position: absolute;
+            bottom: 20px;
+            right: 35px;
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        /* CENTERED CONTROL SECTION */
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .k-input-container {
+            font-family: var(--font-math);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--ink-main);
+        }
+
+        .k-label {
+            font-style: italic;
+            color: var(--ink-pink);
             font-weight: 500;
-            letter-spacing: 0.12em;
-            padding: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        }
+
+        .k-input {
+            font-family: var(--font-print-hand);
+            font-size: 1.8rem;
+            color: var(--ink-blue);
+            background: transparent;
+            border: none;
+            border-bottom: 2px stroke var(--ink-blue);
+            outline: none;
+            width: 110px;
             text-align: center;
-            text-transform: uppercase;
+            padding-bottom: 2px;
+            border-bottom: 2px dashed rgba(43, 76, 126, 0.4);
+            transition: border-color 0.2s;
         }
 
-        .btn:hover {
-            background: var(--bg-surface-hover);
-            color: var(--text-primary);
-            border-color: rgba(255, 255, 255, 0.15);
+        .k-input:focus {
+            border-bottom-color: var(--ink-pink);
         }
 
-        .btn.active {
-            background: var(--accent-dim);
-            border-color: var(--accent);
-            color: var(--accent);
-            box-shadow: 0 0 12px var(--accent-glow);
+        /* PLAY / PAUSE BUTTONS */
+        .playback-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 0.4rem;
         }
 
-        .btn-full {
-            grid-column: span 2;
+        .btn-handwritten {
+            background: none;
+            border: none;
+            font-family: var(--font-hand);
+            font-size: 1.4rem;
+            color: var(--ink-subtle);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: color 0.2s, transform 0.1s;
         }
 
-        .hint-text {
-            font-size: 0.6rem;
-            color: var(--text-muted);
+        .btn-handwritten:hover {
+            color: var(--ink-blue);
+            transform: scale(1.05);
+        }
+
+        .btn-handwritten.active {
+            color: var(--ink-pink);
+            font-weight: 700;
+        }
+
+        /* NOTEBOOK STATUS READOUT */
+        .status-summary {
+            font-family: var(--font-print-hand);
+            font-size: 1.15rem;
+            color: var(--ink-subtle);
+            text-align: center;
+            margin-top: 0.6rem;
             line-height: 1.4;
         }
 
-        /* RESPONSIVE LAYOUT */
-        @media (max-width: 900px) {
-            main {
-                flex-direction: column;
-            }
+        .status-summary span {
+            color: var(--ink-main);
+        }
 
-            .panel {
-                width: 100%;
-                border-left: none;
-                border-top: 1px solid var(--border-subtle);
-                padding: 1.25rem 1.5rem;
-                gap: 1.25rem;
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 768px) {
+            .notebook-paper {
+                padding: 1.5rem 1rem 3rem 2.8rem;
             }
-
-            .overlay-equation {
-                top: 1rem;
-                left: 1rem;
-                padding: 0.75rem 1rem;
+            .notebook-paper::before {
+                left: 2rem;
             }
-
-            .equation-display {
-                font-size: 0.95rem;
+            h1.notebook-title {
+                font-size: 2.5rem;
             }
-
-            .overlay-telemetry {
-                bottom: 1rem;
-                left: 1rem;
-                padding: 0.5rem 0.85rem;
-                gap: 1rem;
+            .main-equation {
+                font-size: 1.35rem;
+            }
+            .annotation {
+                display: none; /* Hide heavy annotations on tiny screens */
             }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand">
-            <div class="brand-logo"></div>
-            <div class="brand-text">
-                <span class="brand-title">WAVEFORM</span>
-                <span class="brand-subtitle">MATHEMATICAL VISUALIZATION</span>
+    <div class="notebook-paper">
+        <div class="content-container">
+            
+            <header>
+                <div class="title-group">
+                    <h1 class="notebook-title">WAVEFORM</h1>
+                    <svg class="title-underline" viewBox="0 0 200 12" preserveAspectRatio="none">
+                        <path d="M 3,7 Q 55,2 105,8 T 197,5" fill="none" stroke="#2B4C7E" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="notebook-subtitle">mathematical visualization</div>
+            </header>
+
+            <div class="equation-area">
+                <div class="main-equation">
+                    y = |x|²⁄³ + 0.9 sin(<span class="k-var" id="eqK">0</span>x) √(3 − x²)
+                </div>
+                <div class="domain-note">
+                    domain: −√3 ≤ x ≤ √3
+                </div>
             </div>
+
+            <div class="graph-wrapper" id="graphWrapper">
+                <canvas id="graphCanvas"></canvas>
+
+                <svg class="annotations-svg" id="annotationsSvg">
+                    <path d="M 580,35 Q 550,60 510,75" fill="none" stroke="#5A4099" stroke-width="1.8" stroke-dasharray="3,3" marker-end="url(#arrow-purple)"/>
+                    <path d="M 110,105 Q 160,110 200,135" fill="none" stroke="#2B4C7E" stroke-width="1.8" stroke-dasharray="4,3" marker-end="url(#arrow-blue)"/>
+                    <path d="M 120,330 Q 150,310 180,320" fill="none" stroke="#E85D75" stroke-width="1.8" marker-end="url(#arrow-pink)"/>
+
+                    <defs>
+                        <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#5A4099" />
+                        </marker>
+                        <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2B4C7E" />
+                        </marker>
+                        <marker id="arrow-pink" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#E85D75" />
+                        </marker>
+                    </defs>
+                </svg>
+
+                <div class="annotation note-freq">k controls frequency ⚡</div>
+                <div class="annotation note-heart">curious heart envelope</div>
+                <div class="annotation note-waves">more k → more waves!</div>
+
+                <svg class="ecg-line" width="140" height="30" viewBox="0 0 140 30">
+                    <path d="M 5,15 L 35,15 L 42,5 L 48,25 L 55,10 L 62,20 L 67,15 L 135,15" fill="none" stroke="#E85D75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <div class="control-section">
+                <div class="k-input-container">
+                    <span class="k-label">k =</span>
+                    <input type="text" id="kInput" class="k-input" value="0" placeholder="0 - 150" autocomplete="off" spellcheck="false">
+                </div>
+
+                <div class="playback-controls">
+                    <button class="btn-handwritten" id="playBtn">▶ play</button>
+                    <button class="btn-handwritten active" id="pauseBtn">Ⅱ pause</button>
+                    <button class="btn-handwritten" id="resetBtn">↺ reset view</button>
+                </div>
+
+                <div class="status-summary">
+                    k = <span id="readoutK">0.00</span> &nbsp;|&nbsp; 
+                    domain: <span>[-1.732, 1.732]</span> &nbsp;|&nbsp; 
+                    state: <span id="readoutState">ready</span>
+                </div>
+            </div>
+
         </div>
-        <div class="header-status">
-            <div class="status-dot" id="statusDot"></div>
-            <span id="statusHeader">LIVE</span>
-        </div>
-    </header>
-
-    <main>
-        <div class="viewport" id="viewport">
-            <canvas id="graphCanvas"></canvas>
-
-            <div class="overlay-equation">
-                <div class="equation-display">
-                    y = |x|²⁄³ + 0.9 sin(<span class="k-highlight" id="eqK">0</span>x) √(3 − x²)
-                </div>
-                <div class="domain-display">
-                    DOMAIN: −√3 ≤ x ≤ √3
-                </div>
-            </div>
-
-            <div class="overlay-telemetry">
-                <div class="telemetry-item">
-                    <span class="telemetry-label">FREQUENCY (K)</span>
-                    <span class="telemetry-value" id="readoutK">0.00</span>
-                </div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">DOMAIN</span>
-                    <span class="telemetry-value">[−1.732, 1.732]</span>
-                </div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">STATE</span>
-                    <span class="telemetry-value" id="readoutState">READY</span>
-                </div>
-            </div>
-        </div>
-
-        <aside class="panel">
-            <div class="panel-section">
-                <span class="section-label">FREQUENCY CONTROL</span>
-                
-                <div class="k-input-wrapper">
-                    <span class="k-symbol">k =</span>
-                    <input type="text" id="kInput" class="k-input" value="0" placeholder="Enter value (0 - 250)" autocomplete="off" spellcheck="false">
-                </div>
-
-                <input type="range" id="kSlider" class="range-slider" min="0" max="250" step="0.01" value="0">
-                
-                <span class="hint-text">Enter any real number between 0 and 250, or drag slider to observe envelope oscillation.</span>
-            </div>
-
-            <div class="panel-section">
-                <span class="section-label">ANIMATION</span>
-                <div class="btn-group">
-                    <button class="btn" id="playBtn">Play</button>
-                    <button class="btn active" id="pauseBtn">Pause</button>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <span class="section-label">VIEWPORT NAVIGATION</span>
-                <button class="btn btn-full" id="resetBtn">Reset View</button>
-                <span class="hint-text">Use mouse wheel to zoom in/out. Click and drag graph area to pan coordinate plane.</span>
-            </div>
-        </aside>
-    </main>
+    </div>
 
     <script>
         (function() {
             'use strict';
 
-            // --- DOM ELEMENTS ---
+            // DOM Elements
             const canvas = document.getElementById('graphCanvas');
             const ctx = canvas.getContext('2d');
-            const viewport = document.getElementById('viewport');
+            const graphWrapper = document.getElementById('graphWrapper');
             const kInput = document.getElementById('kInput');
-            const kSlider = document.getElementById('kSlider');
             const eqK = document.getElementById('eqK');
             const readoutK = document.getElementById('readoutK');
             const readoutState = document.getElementById('readoutState');
-            const statusDot = document.getElementById('statusDot');
-            const statusHeader = document.getElementById('statusHeader');
             const playBtn = document.getElementById('playBtn');
             const pauseBtn = document.getElementById('pauseBtn');
             const resetBtn = document.getElementById('resetBtn');
 
-            // --- STATE VARIABLES ---
+            // Math Constants
+            const SQRT_3 = Math.sqrt(3);
+            const K_MIN = 0;
+            const K_MAX = 150;
+
+            // State
             let currentK = 0.0;
             let targetK = 0.0;
             let isAnimatingMode = false;
             let animDirection = 1;
 
-            const K_MIN = 0;
-            const K_MAX = 250;
-            const SQRT_3 = Math.sqrt(3);
-
-            // Camera / Viewport framing
-            let scaleX = 1.0; 
-            let scaleY = 1.0; 
-            let panX = 0.0;  // Math units
-            let panY = 0.8;  // Math units (offset vertically to center peak nicely)
-            let basePixelsPerUnit = 200;
+            // Viewport Framing
+            let scaleX = 1.0;
+            let scaleY = 1.0;
+            let panX = 0.0;
+            let panY = 0.75;
+            let basePixelsPerUnit = 180;
 
             // Drag State
             let isDragging = false;
-            let dragStartX = 0;
-            let dragStartY = 0;
-            let panStartX = 0;
-            let panStartY = 0;
+            let dragStartX = 0, dragStartY = 0;
+            let panStartX = 0, panStartY = 0;
 
-            // --- INITIALIZATION ---
             function init() {
                 setupEventListeners();
                 handleResize();
@@ -551,40 +457,39 @@
                 requestAnimationFrame(loop);
             }
 
-            // --- VIEWPORT & COORDINATE SYSTEM MAPPING ---
             function resetView() {
                 panX = 0.0;
-                panY = 0.8;
+                panY = 0.75;
                 scaleX = 1.0;
                 scaleY = 1.0;
             }
 
             function handleResize() {
+                const rect = graphWrapper.getBoundingClientRect();
+                const width = Math.min(rect.width, 820);
+                const height = 440;
+
                 const dpr = window.devicePixelRatio || 1;
-                const rect = viewport.getBoundingClientRect();
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                canvas.style.width = `${width}px`;
+                canvas.style.height = `${height}px`;
 
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
                 ctx.scale(dpr, dpr);
-
-                canvas.style.width = `${rect.width}px`;
-                canvas.style.height = `${rect.height}px`;
-
-                // Calculate default sizing scale relative to viewport width
-                basePixelsPerUnit = Math.min(rect.width, rect.height) / 4.5;
+                basePixelsPerUnit = Math.min(width, height) / 3.8;
             }
 
             function mathToScreen(x, y) {
-                const rect = viewport.getBoundingClientRect();
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                const centerX = width / 2;
+                const centerY = height / 2;
 
                 const screenX = centerX + (x - panX) * (basePixelsPerUnit * scaleX);
                 const screenY = centerY - (y - panY) * (basePixelsPerUnit * scaleY);
                 return { x: screenX, y: screenY };
             }
 
-            // --- MATHEMATICAL EVALUATION ---
             function evaluateFunction(x, k) {
                 const absX = Math.abs(x);
                 const term1 = Math.pow(absX, 2 / 3);
@@ -593,17 +498,10 @@
                 return term1 + term2;
             }
 
-            // --- EVENT HANDLING ---
             function setupEventListeners() {
                 window.addEventListener('resize', handleResize);
 
-                // Slider Input
-                kSlider.addEventListener('input', (e) => {
-                    const val = parseFloat(e.target.value);
-                    setTargetK(val, false);
-                });
-
-                // Text Input
+                // K Input Handling
                 kInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         validateAndApplyInput();
@@ -611,19 +509,15 @@
                     }
                 });
 
-                kInput.addEventListener('blur', () => {
-                    validateAndApplyInput();
-                });
+                kInput.addEventListener('blur', validateAndApplyInput);
 
-                // Play / Pause Buttons
+                // Play / Pause / Reset
                 playBtn.addEventListener('click', () => setAnimationMode(true));
                 pauseBtn.addEventListener('click', () => setAnimationMode(false));
-
-                // Reset View Button
                 resetBtn.addEventListener('click', resetView);
 
-                // Mouse Pan
-                viewport.addEventListener('mousedown', (e) => {
+                // Pan / Dragging
+                canvas.addEventListener('mousedown', (e) => {
                     isDragging = true;
                     dragStartX = e.clientX;
                     dragStartY = e.clientY;
@@ -635,7 +529,6 @@
                     if (!isDragging) return;
                     const dx = e.clientX - dragStartX;
                     const dy = e.clientY - dragStartY;
-
                     const unitX = basePixelsPerUnit * scaleX;
                     const unitY = basePixelsPerUnit * scaleY;
 
@@ -643,43 +536,14 @@
                     panY = panStartY + dy / unitY;
                 });
 
-                window.addEventListener('mouseup', () => {
-                    isDragging = false;
-                });
-
-                // Touch Pan (Mobile)
-                viewport.addEventListener('touchstart', (e) => {
-                    if (e.touches.length === 1) {
-                        isDragging = true;
-                        dragStartX = e.touches[0].clientX;
-                        dragStartY = e.touches[0].clientY;
-                        panStartX = panX;
-                        panStartY = panY;
-                    }
-                }, { passive: true });
-
-                window.addEventListener('touchmove', (e) => {
-                    if (!isDragging || e.touches.length !== 1) return;
-                    const dx = e.touches[0].clientX - dragStartX;
-                    const dy = e.touches[0].clientY - dragStartY;
-
-                    const unitX = basePixelsPerUnit * scaleX;
-                    const unitY = basePixelsPerUnit * scaleY;
-
-                    panX = panStartX - dx / unitX;
-                    panY = panStartY + dy / unitY;
-                }, { passive: true });
-
-                window.addEventListener('touchend', () => {
-                    isDragging = false;
-                });
+                window.addEventListener('mouseup', () => { isDragging = false; });
 
                 // Zoom (Mouse Wheel)
-                viewport.addEventListener('wheel', (e) => {
+                canvas.addEventListener('wheel', (e) => {
                     e.preventDefault();
-                    const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-                    scaleX = Math.max(0.2, Math.min(20, scaleX * zoomFactor));
-                    scaleY = Math.max(0.2, Math.min(20, scaleY * zoomFactor));
+                    const zoom = e.deltaY < 0 ? 1.06 : 0.94;
+                    scaleX = Math.max(0.4, Math.min(10, scaleX * zoom));
+                    scaleY = Math.max(0.4, Math.min(10, scaleY * zoom));
                 }, { passive: false });
             }
 
@@ -689,17 +553,8 @@
                     parsed = targetK;
                 }
                 parsed = Math.max(K_MIN, Math.min(K_MAX, parsed));
-                setTargetK(parsed, true);
-            }
-
-            function setTargetK(val, updateSlider = true) {
-                targetK = val;
-                if (updateSlider) {
-                    kSlider.value = val;
-                }
-                if (isAnimatingMode) {
-                    setAnimationMode(false);
-                }
+                targetK = parsed;
+                if (isAnimatingMode) setAnimationMode(false);
             }
 
             function setAnimationMode(active) {
@@ -710,45 +565,28 @@
                 } else {
                     pauseBtn.classList.add('active');
                     playBtn.classList.remove('active');
-                    targetK = currentK; // Freeze at current location
-                    kInput.value = formatNumber(targetK);
-                    kSlider.value = targetK;
+                    targetK = currentK;
                 }
             }
 
-            function formatNumber(n) {
-                if (Math.abs(n - Math.round(n)) < 0.001) {
-                    return Math.round(n).toString();
-                }
-                return n.toFixed(2);
+            function formatNum(n) {
+                return Math.abs(n - Math.round(n)) < 0.001 ? Math.round(n).toString() : n.toFixed(2);
             }
 
-            // --- ANIMATION & RENDERING LOOP ---
             function loop() {
-                updateState();
+                update();
                 render();
                 requestAnimationFrame(loop);
             }
 
-            function updateState() {
-                // Continuous Play Mode
+            function update() {
                 if (isAnimatingMode) {
-                    const speed = 10.0 / 60.0; // Oscillate frequency smoothly
-                    targetK += speed * animDirection;
-                    if (targetK >= K_MAX) {
-                        targetK = K_MAX;
-                        animDirection = -1;
-                    } else if (targetK <= K_MIN) {
-                        targetK = K_MIN;
-                        animDirection = 1;
-                    }
-                    kSlider.value = targetK;
-                    if (document.activeElement !== kInput) {
-                        kInput.value = formatNumber(targetK);
-                    }
+                    targetK += 0.12 * animDirection;
+                    if (targetK >= K_MAX) { targetK = K_MAX; animDirection = -1; }
+                    else if (targetK <= K_MIN) { targetK = K_MIN; animDirection = 1; }
                 }
 
-                // Exponential Interpolation (Smooth Morphing)
+                // Smooth Morph Interpolation
                 const diff = targetK - currentK;
                 if (Math.abs(diff) > 0.0001) {
                     currentK += diff * 0.08;
@@ -756,194 +594,187 @@
                     currentK = targetK;
                 }
 
-                // Update UI Readouts & Equation Overlay
-                const formattedK = formatNumber(currentK);
-                eqK.textContent = formattedK;
+                const formatted = formatNum(currentK);
+                eqK.textContent = formatted;
                 readoutK.textContent = currentK.toFixed(2);
 
                 if (document.activeElement !== kInput && !isAnimatingMode) {
-                    kInput.value = formattedK;
+                    kInput.value = formatted;
                 }
 
-                // Update Telemetry Status
                 if (isAnimatingMode) {
-                    readoutState.textContent = 'ANIMATING';
-                    readoutState.style.color = '#38bdf8';
-                    statusDot.className = 'status-dot animating';
-                    statusHeader.textContent = 'ANIMATING';
+                    readoutState.textContent = 'animating...';
                 } else if (Math.abs(targetK - currentK) > 0.01) {
-                    readoutState.textContent = 'MORPHING';
-                    readoutState.style.color = '#c084fc';
-                    statusDot.className = 'status-dot morphing';
-                    statusHeader.textContent = 'MORPHING';
+                    readoutState.textContent = 'morphing';
                 } else {
-                    readoutState.textContent = currentK === 0 ? 'READY' : 'STABLE';
-                    readoutState.style.color = 'var(--text-primary)';
-                    statusDot.className = 'status-dot';
-                    statusHeader.textContent = 'LIVE';
+                    readoutState.textContent = currentK === 0 ? 'ready' : 'stable';
                 }
             }
 
             function render() {
-                const rect = viewport.getBoundingClientRect();
-                const width = rect.width;
-                const height = rect.height;
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
 
                 ctx.clearRect(0, 0, width, height);
 
-                drawGridAndAxes(width, height);
-                drawWaveform(width, height);
+                drawNotebookAxes(width, height);
+                drawInkWaveform();
             }
 
-            // --- CANVAS DRAWING METHODS ---
-            function drawGridAndAxes(width, height) {
-                // Background Coordinate Grid
+            // HAND-DRAWN STYLE AXES & GRID
+            function drawNotebookAxes(width, height) {
                 ctx.save();
-                ctx.lineWidth = 1;
 
                 const pxPerUnitX = basePixelsPerUnit * scaleX;
                 const pxPerUnitY = basePixelsPerUnit * scaleY;
 
-                // Determine math bounds visible on screen
                 const minMathX = panX - (width / 2) / pxPerUnitX;
                 const maxMathX = panX + (width / 2) / pxPerUnitX;
                 const minMathY = panY - (height / 2) / pxPerUnitY;
                 const maxMathY = panY + (height / 2) / pxPerUnitY;
 
-                // Calculate adaptive step size for grid ticks
                 let step = 0.5;
-                if (pxPerUnitX > 300) step = 0.25;
-                if (pxPerUnitX < 100) step = 1.0;
-                if (pxPerUnitX < 40) step = 2.0;
+                if (pxPerUnitX < 80) step = 1.0;
 
-                ctx.font = "10px 'JetBrains Mono'";
-                ctx.fillStyle = "rgba(104, 115, 134, 0.5)";
+                // Faint Pencil Grid
+                ctx.strokeStyle = "rgba(43, 76, 126, 0.06)";
+                ctx.lineWidth = 1;
 
-                // Vertical Grid Lines & X Labels
                 const firstX = Math.floor(minMathX / step) * step;
                 for (let x = firstX; x <= maxMathX; x += step) {
                     const pt = mathToScreen(x, 0);
-                    
-                    // Grid line
-                    ctx.strokeStyle = "rgba(255, 255, 255, 0.025)";
                     ctx.beginPath();
                     ctx.moveTo(pt.x, 0);
                     ctx.lineTo(pt.x, height);
                     ctx.stroke();
-
-                    // Tick mark & label
-                    if (Math.abs(x) > 0.001) {
-                        const originY = mathToScreen(0, 0).y;
-                        const labelY = Math.max(20, Math.min(height - 20, originY + 15));
-                        ctx.textAlign = "center";
-                        ctx.fillText(x.toFixed(x % 1 === 0 ? 0 : 1), pt.x, labelY);
-                    }
                 }
 
-                // Horizontal Grid Lines & Y Labels
                 const firstY = Math.floor(minMathY / step) * step;
                 for (let y = firstY; y <= maxMathY; y += step) {
                     const pt = mathToScreen(0, y);
-
-                    // Grid line
-                    ctx.strokeStyle = "rgba(255, 255, 255, 0.025)";
                     ctx.beginPath();
                     ctx.moveTo(0, pt.y);
                     ctx.lineTo(width, pt.y);
                     ctx.stroke();
-
-                    // Tick mark & label
-                    if (Math.abs(y) > 0.001) {
-                        const originX = mathToScreen(0, 0).x;
-                        const labelX = Math.max(10, Math.min(width - 25, originX - 10));
-                        ctx.textAlign = "right";
-                        ctx.fillText(y.toFixed(y % 1 === 0 ? 0 : 1), labelX, pt.y + 3);
-                    }
                 }
 
-                // Primary Axes (X = 0, Y = 0)
+                // Main Axes (Organic Hand-Drawn Blue Ink Pen Strokes)
                 const origin = mathToScreen(0, 0);
-
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = "#2B4C7E";
+                ctx.lineWidth = 1.8;
+                ctx.font = "16px 'Caveat', cursive";
+                ctx.fillStyle = "#2B4C7E";
 
                 // X-Axis
                 if (origin.y >= 0 && origin.y <= height) {
                     ctx.beginPath();
-                    ctx.moveTo(0, origin.y);
-                    ctx.lineTo(width, origin.y);
+                    // Slight organic curve offset to feel hand-drawn
+                    ctx.moveTo(0, origin.y + 0.5);
+                    ctx.quadraticCurveTo(width / 2, origin.y - 1, width, origin.y + 0.5);
                     ctx.stroke();
+
+                    // X-Axis Arrow
+                    ctx.beginPath();
+                    ctx.moveTo(width - 12, origin.y - 5);
+                    ctx.lineTo(width - 2, origin.y);
+                    ctx.lineTo(width - 12, origin.y + 5);
+                    ctx.stroke();
+
+                    // Label 'x'
+                    ctx.fillText("x", width - 18, origin.y - 10);
                 }
 
                 // Y-Axis
                 if (origin.x >= 0 && origin.x <= width) {
                     ctx.beginPath();
-                    ctx.moveTo(origin.x, 0);
-                    ctx.lineTo(origin.x, height);
+                    ctx.moveTo(origin.x + 0.5, height);
+                    ctx.quadraticCurveTo(origin.x - 1, height / 2, origin.x + 0.5, 0);
                     ctx.stroke();
+
+                    // Y-Axis Arrow
+                    ctx.beginPath();
+                    ctx.moveTo(origin.x - 5, 12);
+                    ctx.lineTo(origin.x, 2);
+                    ctx.lineTo(origin.x + 5, 12);
+                    ctx.stroke();
+
+                    // Label 'y'
+                    ctx.fillText("y", origin.x + 10, 18);
                 }
 
-                // Domain Boundary Indicators (-√3 and +√3)
-                ctx.strokeStyle = "rgba(129, 140, 248, 0.2)";
+                // Handwritten Tick Labels
+                for (let x = firstX; x <= maxMathX; x += step) {
+                    if (Math.abs(x) > 0.05) {
+                        const pt = mathToScreen(x, 0);
+                        const labelY = Math.max(25, Math.min(height - 15, origin.y + 18));
+                        ctx.textAlign = "center";
+                        ctx.fillText(x.toFixed(x % 1 === 0 ? 0 : 1), pt.x, labelY);
+                    }
+                }
+
+                for (let y = firstY; y <= maxMathY; y += step) {
+                    if (Math.abs(y) > 0.05) {
+                        const pt = mathToScreen(0, y);
+                        const labelX = Math.max(15, Math.min(width - 20, origin.x - 12));
+                        ctx.textAlign = "right";
+                        ctx.fillText(y.toFixed(y % 1 === 0 ? 0 : 1), labelX, pt.y + 4);
+                    }
+                }
+
+                // Domain Boundary Vertical Dashed Lines
+                ctx.strokeStyle = "rgba(232, 93, 117, 0.4)";
                 ctx.setLineDash([4, 4]);
 
-                const leftBoundX = mathToScreen(-SQRT_3, 0).x;
-                const rightBoundX = mathToScreen(SQRT_3, 0).x;
+                const leftX = mathToScreen(-SQRT_3, 0).x;
+                const rightX = mathToScreen(SQRT_3, 0).x;
 
                 ctx.beginPath();
-                ctx.moveTo(leftBoundX, 0);
-                ctx.lineTo(leftBoundX, height);
-                ctx.moveTo(rightBoundX, 0);
-                ctx.lineTo(rightBoundX, height);
+                ctx.moveTo(leftX, 0); ctx.lineTo(leftX, height);
+                ctx.moveTo(rightX, 0); ctx.lineTo(rightX, height);
                 ctx.stroke();
 
                 ctx.restore();
             }
 
-            function drawWaveform(width, height) {
+            // INK WAVEFORM DRAWING
+            function drawInkWaveform() {
                 ctx.save();
 
-                // High-resolution adaptive sampling
-                // Sample count scales dynamically with frequency (k) to avoid aliasing artifacts
-                const baseSamples = 1200;
-                const dynamicSamples = Math.ceil(currentK * 20);
-                const sampleCount = Math.max(baseSamples, dynamicSamples);
-
-                const step = (2 * SQRT_3) / sampleCount;
+                const samples = Math.max(1000, Math.ceil(currentK * 18));
+                const step = (2 * SQRT_3) / samples;
 
                 ctx.beginPath();
-                let isFirstPoint = true;
+                let first = true;
 
-                for (let i = 0; i <= sampleCount; i++) {
+                for (let i = 0; i <= samples; i++) {
                     const x = -SQRT_3 + i * step;
                     const y = evaluateFunction(x, currentK);
                     const pt = mathToScreen(x, y);
 
-                    if (isFirstPoint) {
+                    if (first) {
                         ctx.moveTo(pt.x, pt.y);
-                        isFirstPoint = false;
+                        first = false;
                     } else {
                         ctx.lineTo(pt.x, pt.y);
                     }
                 }
 
-                // Layer 1: Ambient Curve Glow
-                ctx.strokeStyle = "rgba(129, 140, 248, 0.4)";
-                ctx.lineWidth = 4;
-                ctx.shadowColor = "rgba(129, 140, 248, 0.8)";
-                ctx.shadowBlur = 10;
+                // Layer 1: Soft Fountain Pen Ink Under-Bleed
+                ctx.strokeStyle = currentK > 20 ? "rgba(90, 64, 153, 0.35)" : "rgba(43, 76, 126, 0.25)";
+                ctx.lineWidth = 4.5;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
                 ctx.stroke();
 
-                // Layer 2: Precision Curve Core Line
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = "#F0F3F8";
-                ctx.lineWidth = 1.5;
+                // Layer 2: Core Rich Ink Stroke (Pink / Violet Accent for high K)
+                ctx.strokeStyle = currentK > 30 ? "#E85D75" : "#2B4C7E";
+                ctx.lineWidth = 2.0;
                 ctx.stroke();
 
                 ctx.restore();
             }
 
-            // Run Application
+            // Run
             init();
         })();
     </script>
