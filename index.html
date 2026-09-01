@@ -16,7 +16,8 @@
             --margin-line: rgba(230, 110, 120, 0.35);
             --ink-main: #1C2434;
             --ink-blue: #2B4C7E;
-            --ink-pink: #E85D75;
+            --ink-pink: #E84A7A;
+            --ink-pink-highlight: #FF6B9A;
             --ink-purple: #5A4099;
             --ink-subtle: #7A8999;
             
@@ -399,7 +400,7 @@
                 <svg class="annotations-svg" id="annotationsSvg">
                     <path d="M 160,32 Q 210,48 245,75" fill="none" stroke="#5A4099" stroke-width="1.6" stroke-dasharray="3,3" marker-end="url(#arrow-purple)"/>
                     <path d="M 640,40 Q 610,65 570,95" fill="none" stroke="#2B4C7E" stroke-width="1.6" stroke-dasharray="4,3" marker-end="url(#arrow-blue)"/>
-                    <path d="M 125,320 Q 155,305 190,320" fill="none" stroke="#E85D75" stroke-width="1.6" marker-end="url(#arrow-pink)"/>
+                    <path d="M 125,320 Q 155,305 190,320" fill="none" stroke="#E84A7A" stroke-width="1.6" marker-end="url(#arrow-pink)"/>
 
                     <defs>
                         <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
@@ -409,7 +410,7 @@
                             <path d="M 0 1 L 10 5 L 0 9 z" fill="#2B4C7E" />
                         </marker>
                         <marker id="arrow-pink" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#E85D75" />
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#E84A7A" />
                         </marker>
                     </defs>
                 </svg>
@@ -466,9 +467,12 @@
             const K_MIN = 0;
             const K_MAX = 150;
 
-            // Interpolation State
+            // Interpolation State (2.5 Second Calm Fluid Easing)
             let currentK = 0.0;
             let targetK = 0.0;
+            let startK = 0.0;
+            let animStartTime = 0;
+            const ANIM_DURATION = 2500; // 2.5 seconds
 
             // Viewport & Pan/Zoom
             const DEFAULT_PAN_X = 0.0;
@@ -584,7 +588,11 @@
                     parsed = targetK;
                 }
                 parsed = Math.max(K_MIN, Math.min(K_MAX, parsed));
-                targetK = parsed;
+                if (parsed !== targetK) {
+                    startK = currentK;
+                    targetK = parsed;
+                    animStartTime = performance.now();
+                }
             }
 
             function formatDisplayNum(num) {
@@ -602,12 +610,18 @@
             }
 
             function updateState() {
-                // Smooth Interpolation for K Morphing
-                const kDiff = targetK - currentK;
-                if (Math.abs(kDiff) > 0.0001) {
-                    currentK += kDiff * 0.06;
-                } else {
-                    currentK = targetK;
+                // Smooth, Steady, Fluid Cubic Interpolation over 2.5s (No overshoot/bounce)
+                if (currentK !== targetK) {
+                    const elapsed = performance.now() - animStartTime;
+                    const progress = Math.min(1, Math.max(0, elapsed / ANIM_DURATION));
+                    
+                    // Ease Out Cubic: 1 - (1 - t)^3
+                    const ease = 1 - Math.pow(1 - progress, 3);
+                    currentK = startK + (targetK - startK) * ease;
+
+                    if (progress >= 1) {
+                        currentK = targetK;
+                    }
                 }
 
                 // Smooth Viewport Interpolation
@@ -626,7 +640,7 @@
                 }
 
                 // Determine State Label
-                if (Math.abs(targetK - currentK) > 0.02) {
+                if (Math.abs(targetK - currentK) > 0.01) {
                     readoutState.textContent = 'morphing';
                 } else {
                     readoutState.textContent = currentK === 0 ? 'ready' : 'stable';
@@ -739,7 +753,7 @@
                 }
 
                 // Domain Limit Vertical Dashed Lines (−√3 and √3)
-                ctx.strokeStyle = "rgba(232, 93, 117, 0.38)";
+                ctx.strokeStyle = "rgba(232, 74, 122, 0.38)";
                 ctx.setLineDash([4, 4]);
 
                 const leftBoundaryX = mathToScreen(-SQRT_3, 0).x;
@@ -753,7 +767,7 @@
                 ctx.restore();
             }
 
-            // ACCURATE WAVEFORM RENDERING
+            // ACCURATE PINK HEART WAVEFORM RENDERING
             function drawWaveformCurve() {
                 ctx.save();
 
@@ -777,16 +791,16 @@
                     }
                 }
 
-                // Layer 1: Soft Fountain Pen Under-Bleed Effect
-                ctx.strokeStyle = currentK > 40 ? "rgba(90, 64, 153, 0.28)" : "rgba(43, 76, 126, 0.22)";
-                ctx.lineWidth = 4.2;
+                // Layer 1: Soft Pink Outer Bleed Glow (#FF6B9A)
+                ctx.strokeStyle = "rgba(255, 107, 154, 0.28)";
+                ctx.lineWidth = 4.5;
                 ctx.lineCap = "round";
                 ctx.lineJoin = "round";
                 ctx.stroke();
 
-                // Layer 2: Main Fountain Pen Core Line
-                ctx.strokeStyle = currentK > 50 ? "#5A4099" : (currentK > 15 ? "#2B4C7E" : "#1C2434");
-                ctx.lineWidth = 1.9;
+                // Layer 2: Main Fountain Pen Core Line - Beautiful Ink Pink (#E84A7A)
+                ctx.strokeStyle = "#E84A7A";
+                ctx.lineWidth = 2.0;
                 ctx.stroke();
 
                 ctx.restore();
