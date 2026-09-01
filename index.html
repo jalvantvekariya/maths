@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematical Waveform Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@100;400&family=Lora:ital@1&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #050608;
+            --bg-panel: #080A0F;
+            --bg-element: #0C1017;
+            --text-primary: #F0F3F8;
+            --text-secondary: #AAB3C2;
+            --text-muted: #687386;
+            --accent: #818cf8;
+            --accent-glow: rgba(129, 140, 248, 0.4);
+            --border: rgba(255, 255, 255, 0.06);
+            
+            --font-ui: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-math: 'Lora', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-ui);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-panel);
+            z-index: 10;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--accent);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 2px;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .title-group h1 {
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            color: var(--text-primary);
+        }
+
+        .title-group p {
+            font-size: 0.65rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* MAIN LAYOUT */
+        main {
+            display: flex;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                flex-direction: column;
+            }
+        }
+
+        /* GRAPH AREA */
+        .graph-container {
+            flex: 1;
+            position: relative;
+            background-color: var(--bg-base);
+            cursor: grab;
+        }
+
+        .graph-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* OVERLAYS */
+        .overlay {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .equation-panel {
+            top: 2rem;
+            left: 2rem;
+            background: rgba(8, 10, 15, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .math-eq {
+            font-family: var(--font-math);
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .math-eq .k-var {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .domain-info {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .readout-panel {
+            bottom: 2rem;
+            left: 2rem;
+            display: flex;
+            gap: 2rem;
+            font-family: var(--font-mono);
+        }
+
+        .readout-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .readout-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+        }
+
+        .readout-value {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        #statusReadout {
+            color: var(--accent);
+        }
+
+        /* CONTROLS */
+        .controls-area {
+            width: 320px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            z-index: 5;
+        }
+
+        @media (max-width: 900px) {
+            .controls-area {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 1.5rem;
+                max-height: 40vh;
+                overflow-y: auto;
+            }
+            .equation-panel {
+                top: 1rem;
+                left: 1rem;
+                padding: 1rem;
+            }
+            .math-eq { font-size: 1.2rem; }
+            .readout-panel { bottom: 1rem; left: 1rem; gap: 1rem;}
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .k-prefix {
+            font-family: var(--font-math);
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        input[type="text"] {
+            background: var(--bg-element);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 2px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(129, 140, 248, 0.1);
+        }
+
+        /* Slider Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type="range"]:focus {
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            cursor: pointer;
+            background: var(--text-muted);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 0 10px var(--accent-glow);
+            transition: transform 0.1s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        button {
+            background: var(--bg-element);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: var(--font-ui);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            padding: 0.75rem 1rem;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-secondary);
+        }
+
+        button.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <div class="title-group">
+                <h1>WAVEFORM</h1>
+                <p>MATHEMATICAL VISUALIZATION</p>
+            </div>
+        </div>
+        <div class="status-indicator">
+            <div class="dot"></div>
+            LIVE
+        </div>
+    </header>
+
+    <main>
+        <div class="graph-container" id="graphContainer">
+            <canvas id="graphCanvas"></canvas>
+            
+            <div class="overlay equation-panel">
+                <div class="math-eq">
+                    y = |x|²⁄³ + 0.9 sin(<span class="k-var">k</span>x) √(3 − x²)
+                </div>
+                <div class="domain-info">
+                    DOMAIN: [−√3, √3]
+                </div>
+            </div>
+
+            <div class="overlay readout-panel">
+                <div class="readout-item">
+                    <span class="readout-label">K VALUE</span>
+                    <span class="readout-value" id="kReadout">0.00</span>
+                </div>
+                <div class="readout-item">
+                    <span class="readout-label">STATUS</span>
+                    <span class="readout-value" id="statusReadout">READY</span>
+                </div>
+            </div>
+        </div>
+
+        <aside class="controls-area">
+            <div class="control-group">
+                <span class="control-label">FREQUENCY CONTROL</span>
+                <div class="input-row">
+                    <span class="k-prefix">k =</span>
+                    <input type="text" id="kInput" value="0" autocomplete="off">
+                </div>
+                <input type="range" id="kSlider" min="0" max="250" step="0.01" value="0">
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">ANIMATION</span>
+                <div class="button-group">
+                    <button id="playBtn">Play</button>
+                    <button id="pauseBtn" class="active">Pause</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">VIEWPORT</span>
+                <button id="resetBtn">Reset View</button>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('graphContainer');
+        const kInput = document.getElementById('kInput');
+        const kSlider = document.getElementById('kSlider');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const kReadout = document.getElementById('kReadout');
+        const statusReadout = document.getElementById('statusReadout');
+
+        // State Variables
+        let currentK = 0;
+        let targetK = 0;
+        let isPlaying = false;
+        let animationDir = 1;
+        const K_MAX = 250;
+        const K_MIN = 0;
+        
+        // Mathematical Constants
+        const DOMAIN_LIMIT = Math.sqrt(3);
+
+        // Viewport / Camera State (Mapping Math coordinates to Canvas pixels)
+        const DEFAULT_VIEW = {
+            centerX: 0,
+            centerY: 1, // Shifted up slightly to center the curve
+            scaleX: 1,  // Pixels per math unit
+            scaleY: 1
+        };
+        
+        let view = { ...DEFAULT_VIEW };
+        let baseScale = 1; // Calculated based on screen size
+
+        // Interaction State
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        // Initialization
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            setupEventListeners();
+            resetView();
+            requestAnimationFrame(renderLoop);
+        }
+
+        function resize() {
+            // High DPI Display Support
+            const dpr = window.devicePixelRatio || 1;
+            const rect = container.getBoundingClientRect();
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+
+            // Adjust base scale to fit the domain comfortably (-2 to 2 horizontally)
+            baseScale = rect.width / 5; 
+            
+            // Adjust vertical scale slightly if mobile
+            if (rect.width < 900) {
+                baseScale = rect.width / 4.5;
+            }
+        }
+
+        function resetView() {
+            view.centerX = 0;
+            view.centerY = 1.2;
+            view.scaleX = 1;
+            view.scaleY = 1;
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Input Controls
+            kInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    applyK(kInput.value);
+                    kInput.blur();
+                }
+            });
+
+            kInput.addEventListener('blur', () => {
+                applyK(kInput.value);
+            });
+
+            kSlider.addEventListener('input', (e) => {
+                applyK(e.target.value, false);
+            });
+
+            // Buttons
+            playBtn.addEventListener('click', startAnimation);
+            pauseBtn.addEventListener('click', stopAnimation);
+            resetBtn.addEventListener('click', resetView);
+
+            // Pan and Zoom
+            canvas.addEventListener('mousedown', startDrag);
+            canvas.addEventListener('mousemove', drag);
+            window.addEventListener('mouseup', endDrag);
+            
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                startDrag({ clientX: touch.clientX, clientY: touch.clientY });
+            }, { passive: false });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                drag({ clientX: touch.clientX, clientY: touch.clientY });
+            }, { passive: false });
+            
+            window.addEventListener('touchend', endDrag);
+
+            canvas.addEventListener('wheel', handleZoom, { passive: false });
+        }
+
+        function applyK(val, updateSlider = true) {
+            let parsed = parseFloat(val);
+            if (isNaN(parsed) || !isFinite(parsed)) {
+                kInput.value = formatNumber(targetK);
+                return;
+            }
+            // Clamp
+            parsed = Math.max(K_MIN, Math.min(K_MAX, parsed));
+            
+            targetK = parsed;
+            kInput.value = formatNumber(parsed);
+            if (updateSlider) {
+                kSlider.value = parsed;
+            }
+            if (isPlaying) stopAnimation();
+        }
+
+        function startAnimation() {
+            isPlaying = true;
+            playBtn.classList.add('active');
+            pauseBtn.classList.remove('active');
+        }
+
+        function stopAnimation() {
+            isPlaying = false;
+            playBtn.classList.remove('active');
+            pauseBtn.classList.add('active');
+            targetK = currentK; 
+            kInput.value = formatNumber(targetK);
+            kSlider.value = targetK;
+        }
+
+        // Viewport Interaction Logic
+        function startDrag(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+            
+            // Convert pixel delta to math delta
+            const currentScale = baseScale * view.scaleX;
+            view.centerX -= dx / currentScale;
+            view.centerY += dy / currentScale; // Invert Y
+            
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        function handleZoom(e) {
+            e.preventDefault();
+            const zoomFactor = 1.1;
+            if (e.deltaY < 0) {
+                // Zoom in
+                view.scaleX *= zoomFactor;
+                view.scaleY *= zoomFactor;
+            } else {
+                // Zoom out
+                view.scaleX /= zoomFactor;
+                view.scaleY /= zoomFactor;
+            }
+        }
+
+        // Math <-> Pixel Mapping
+        function mathToPixel(mx, my, width, height) {
+            const pxPerUnitX = baseScale * view.scaleX;
+            const pxPerUnitY = baseScale * view.scaleY;
+            
+            const px = (width / 2) + (mx - view.centerX) * pxPerUnitX;
+            const py = (height / 2) - (my - view.centerY) * pxPerUnitY;
+            
+            return { x: px, y: py };
+        }
+
+        function formatNumber(num) {
+            return num % 1 === 0 ? num.toString() : num.toFixed(2);
+        }
+
+        // Main Render Loop
+        function renderLoop() {
+            updateLogic();
+            draw();
+            requestAnimationFrame(renderLoop);
+        }
+
+        function updateLogic() {
+            // Handle Animation Mode
+            if (isPlaying) {
+                const animSpeed = 5; // units per second approximately
+                targetK += (animSpeed / 60) * animationDir;
+                
+                if (targetK >= K_MAX) {
+                    targetK = K_MAX;
+                    animationDir = -1;
+                } else if (targetK <= K_MIN) {
+                    targetK = K_MIN;
+                    animationDir = 1;
+                }
+                
+                kSlider.value = targetK;
+                // Only update text input if not focused to avoid disrupting user
+                if (document.activeElement !== kInput) {
+                    kInput.value = formatNumber(targetK);
+                }
+            }
+
+            // Smooth Interpolation
+            const diff = targetK - currentK;
+            if (Math.abs(diff) > 0.001) {
+                currentK += diff * 0.1; // Smoothing factor
+            } else {
+                currentK = targetK;
+            }
+
+            // Update UI Readouts
+            kReadout.textContent = currentK.toFixed(2);
+            
+            if (isPlaying) {
+                statusReadout.textContent = "ANIMATING";
+                statusReadout.style.color = "var(--accent)";
+            } else if (Math.abs(targetK - currentK) > 0.01) {
+                statusReadout.textContent = "MORPHING";
+                statusReadout.style.color = "#AAB3C2";
+            } else {
+                statusReadout.textContent = "READY";
+                statusReadout.style.color = "var(--text-muted)";
+            }
+        }
+
+        function draw() {
+            const rect = container.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
+
+            // Clear
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw Background Grid & Axes
+            drawAxesAndGrid(w, h);
+
+            // Draw Mathematical Curve
+            drawCurve(w, h, currentK);
+        }
+
+        function drawAxesAndGrid(w, h) {
+            ctx.lineWidth = 1;
+            const pxPerUnitX = baseScale * view.scaleX;
+            const pxPerUnitY = baseScale * view.scaleY;
+
+            // Define viewable math range
+            const mathMinX = view.centerX - (w / 2) / pxPerUnitX;
+            const mathMaxX = view.centerX + (w / 2) / pxPerUnitX;
+            const mathMinY = view.centerY - (h / 2) / pxPerUnitY;
+            const mathMaxY = view.centerY + (h / 2) / pxPerUnitY;
+
+            // Grid spacing (adaptive based on scale)
+            let step = 0.5;
+            if (view.scaleX > 2) step = 0.25;
+            if (view.scaleX < 0.5) step = 1;
+
+            ctx.font = "10px 'JetBrains Mono'";
+            ctx.fillStyle = "rgba(170, 179, 194, 0.4)";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+
+            // Vertical Grid Lines & X-Axis Ticks
+            const startX = Math.floor(mathMinX / step) * step;
+            for (let x = startX; x <= mathMaxX; x += step) {
+                const px = mathToPixel(x, 0, w, h).x;
+                
+                // Grid line
+                ctx.beginPath();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+                ctx.moveTo(px, 0);
+                ctx.lineTo(px, h);
+                ctx.stroke();
+
+                // Tick label
+                if (Math.abs(x) > 0.01) { // Skip 0 to avoid overlapping origin
+                    const pOrigin = mathToPixel(x, 0, w, h);
+                    ctx.fillText(x.toFixed(1).replace('.0',''), px, clampAxis(pOrigin.y, h, true) + 5);
+                }
+            }
+
+            // Horizontal Grid Lines & Y-Axis Ticks
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            const startY = Math.floor(mathMinY / step) * step;
+            for (let y = startY; y <= mathMaxY; y += step) {
+                const py = mathToPixel(0, y, w, h).y;
+                
+                ctx.beginPath();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+                ctx.moveTo(0, py);
+                ctx.lineTo(w, py);
+                ctx.stroke();
+
+                if (Math.abs(y) > 0.01) {
+                    const pOrigin = mathToPixel(0, y, w, h);
+                    ctx.fillText(y.toFixed(1).replace('.0',''), clampAxis(pOrigin.x, w, false) - 5, py);
+                }
+            }
+
+            // Draw Main Axes
+            const pOrigin = mathToPixel(0, 0, w, h);
+            
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+            ctx.lineWidth = 1.5;
+            
+            // X-Axis
+            if (pOrigin.y >= 0 && pOrigin.y <= h) {
+                ctx.beginPath();
+                ctx.moveTo(0, pOrigin.y);
+                ctx.lineTo(w, pOrigin.y);
+                ctx.stroke();
+            }
+
+            // Y-Axis
+            if (pOrigin.x >= 0 && pOrigin.x <= w) {
+                ctx.beginPath();
+                ctx.moveTo(pOrigin.x, 0);
+                ctx.lineTo(pOrigin.x, h);
+                ctx.stroke();
+            }
+        }
+
+        // Helper to keep tick labels on screen if axis pans off screen
+        function clampAxis(val, max, isX) {
+            const padding = 20;
+            return Math.max(padding, Math.min(max - padding, val));
+        }
+
+        function drawCurve(w, h, k) {
+            ctx.save();
+
+            // High performance path generation
+            ctx.beginPath();
+            
+            // Dynamic sampling rate based on k to ensure smooth rendering of high frequencies
+            // Base samples for structural shape + extra samples proportional to frequency
+            const baseSamples = 1000;
+            const freqSamples = Math.ceil(k * 12); 
+            const totalSamples = Math.max(baseSamples, freqSamples);
+            const step = (2 * DOMAIN_LIMIT) / totalSamples;
+
+            let isFirst = true;
+
+            for (let i = 0; i <= totalSamples; i++) {
+                // x goes from -sqrt(3) to sqrt(3)
+                const x = -DOMAIN_LIMIT + i * step;
+                
+                // Ensure floating point precision doesn't push us outside domain for the max(0, 3-x^2)
+                const innerRoot = Math.max(0, 3 - x * x);
+                
+                // Math function: y = |x|^(2/3) + 0.9 * sin(kx) * sqrt(3 - x^2)
+                const y = Math.pow(Math.abs(x), 2/3) + 0.9 * Math.sin(k * x) * Math.sqrt(innerRoot);
+
+                const pt = mathToPixel(x, y, w, h);
+
+                if (isFirst) {
+                    ctx.moveTo(pt.x, pt.y);
+                    isFirst = false;
+                } else {
+                    ctx.lineTo(pt.x, pt.y);
+                }
+            }
+
+            // Premium Glow Effect
+            ctx.strokeStyle = "#818cf8";
+            ctx.lineWidth = 2;
+            
+            // Outer glow
+            ctx.shadowColor = "rgba(129, 140, 248, 0.6)";
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+
+            // Inner core stroke
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = "#c7d2fe";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Boot
+        init();
+
+    </script>
+</body>
+</html>
