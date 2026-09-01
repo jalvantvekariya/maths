@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Waveform | Notebook Visualization</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Patrick+Hand&display=swap" rel="stylesheet">
@@ -13,12 +13,12 @@
         :root {
             --paper-bg: #F7F3E8;
             --paper-line: rgba(140, 165, 195, 0.22);
-            --margin-line: rgba(230, 110, 120, 0.38);
+            --margin-line: rgba(230, 110, 120, 0.35);
             --ink-main: #1C2434;
             --ink-blue: #2B4C7E;
             --ink-pink: #E85D75;
             --ink-purple: #5A4099;
-            --ink-subtle: #6C7A89;
+            --ink-subtle: #7A8999;
             
             --font-hand: 'Caveat', cursive;
             --font-print-hand: 'Patrick Hand', cursive;
@@ -42,8 +42,8 @@
             overflow-y: auto;
         }
 
-        /* REALISTIC RULED NOTEBOOK BACKGROUND */
-        .notebook-paper {
+        /* REALISTIC RULED NOTEBOOK PAPER BACKGROUND */
+        .notebook-page {
             min-height: 100vh;
             width: 100%;
             position: relative;
@@ -56,28 +56,40 @@
                     var(--paper-line) 30px
                 );
             background-attachment: local;
-            padding: 2.5rem 2rem 4rem 5rem;
+            padding: 2.5rem 1.5rem 3rem 4.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* RED MARGIN LINE */
-        .notebook-paper::before {
+        /* NOISE TEXTURE OVERLAY */
+        .notebook-page::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            opacity: 0.035;
+            z-index: 10;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* RED NOTEBOOK MARGIN LINE */
+        .notebook-page::before {
             content: '';
             position: absolute;
             top: 0;
             bottom: 0;
-            left: 3.75rem;
+            left: 3.5rem;
             width: 2px;
             background-color: var(--margin-line);
             pointer-events: none;
+            z-index: 1;
         }
 
-        /* PAGE CONTENT WRAPPER */
+        /* MAIN CONTENT WRAPPER */
         .content-container {
             width: 100%;
-            max-width: 920px;
+            max-width: 880px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -91,8 +103,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            margin-bottom: 2rem;
-            position: relative;
+            margin-bottom: 1.5rem;
         }
 
         .title-group {
@@ -102,12 +113,12 @@
 
         h1.notebook-title {
             font-family: var(--font-hand);
-            font-size: 3.2rem;
+            font-size: 3.4rem;
             font-weight: 700;
             color: var(--ink-blue);
-            line-height: 1;
-            letter-spacing: 0.04em;
-            transform: rotate(-1deg);
+            line-height: 0.95;
+            letter-spacing: 0.03em;
+            transform: rotate(-0.8deg);
         }
 
         .notebook-subtitle {
@@ -118,66 +129,66 @@
             margin-left: 0.2rem;
         }
 
-        /* HAND-DRAWN UNDERLINE SVG */
         .title-underline {
             position: absolute;
-            bottom: -10px;
+            bottom: -8px;
             left: 0;
-            width: 100%;
-            height: 12px;
+            width: 105%;
+            height: 10px;
             overflow: visible;
         }
 
-        /* EQUATION SECTION */
+        /* MATHEMATICAL EQUATION SECTION */
         .equation-area {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.2rem;
             position: relative;
         }
 
         .main-equation {
             font-family: var(--font-math);
-            font-size: 1.85rem;
+            font-size: 1.9rem;
             color: var(--ink-main);
-            margin-bottom: 0.3rem;
-            letter-spacing: 0.02em;
+            margin-bottom: 0.2rem;
+            letter-spacing: 0.01em;
         }
 
         .main-equation span.k-var {
             color: var(--ink-pink);
             font-weight: 600;
             font-style: italic;
+            transition: color 0.3s ease;
         }
 
         .domain-note {
             font-family: var(--font-hand);
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             color: var(--ink-blue);
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
-        /* GRAPH & ANNOTATIONS CONTAINER */
+        /* GRAPH WRAPPER */
         .graph-wrapper {
             width: 100%;
             position: relative;
             display: flex;
             justify-content: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
         }
 
-        /* CANVAS STYLING */
         canvas {
             display: block;
             background: transparent;
             cursor: grab;
+            border-radius: 4px;
         }
         canvas:active {
             cursor: grabbing;
         }
 
-        /* SVG OVERLAY FOR ANNOTATIONS & HAND-DRAWN ARROWS */
+        /* SVG OVERLAY FOR ANNOTATIONS */
         .annotations-svg {
             position: absolute;
             top: 0;
@@ -188,60 +199,93 @@
             z-index: 5;
         }
 
-        /* ANNOTATION TEXT PLACEMENT */
         .annotation {
             position: absolute;
             font-family: var(--font-hand);
-            font-size: 1.35rem;
+            font-size: 1.3rem;
             color: var(--ink-blue);
             pointer-events: none;
             line-height: 1.1;
+            white-space: nowrap;
         }
 
-        .note-freq {
+        .note-heart {
             top: 15px;
-            right: 40px;
-            transform: rotate(3deg);
+            left: 60px;
+            transform: rotate(-3deg);
             color: var(--ink-purple);
         }
 
+        .note-freq {
+            top: 22px;
+            right: 50px;
+            transform: rotate(2deg);
+            color: var(--ink-blue);
+        }
+
         .note-waves {
-            bottom: 80px;
-            left: 20px;
+            bottom: 45px;
+            left: 40px;
             transform: rotate(-4deg);
             color: var(--ink-pink);
         }
 
-        .note-heart {
-            top: 55px;
-            left: 50px;
-            transform: rotate(-2deg);
-        }
-
-        /* ECG HEARTBEAT FLOURISH */
-        .ecg-line {
+        /* ANIMATED ECG HEARTBEAT LINE */
+        .ecg-container {
             position: absolute;
-            bottom: 20px;
-            right: 35px;
+            bottom: 22px;
+            right: 45px;
             pointer-events: none;
-            opacity: 0.85;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* CENTERED CONTROL SECTION */
+        .ecg-svg {
+            width: 130px;
+            height: 30px;
+            overflow: visible;
+        }
+
+        .ecg-path {
+            stroke: var(--ink-pink);
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 220;
+            stroke-dashoffset: 220;
+            animation: ecgDraw 3.8s ease-in-out infinite;
+        }
+
+        @keyframes ecgDraw {
+            0% { stroke-dashoffset: 220; opacity: 0.2; }
+            40% { stroke-dashoffset: 0; opacity: 1; }
+            80% { stroke-dashoffset: -220; opacity: 1; }
+            100% { stroke-dashoffset: -220; opacity: 0.2; }
+        }
+
+        /* CENTERED K CONTROLS & INPUT */
         .control-section {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.8rem;
-            margin-top: 0.5rem;
+            gap: 0.5rem;
+            width: 100%;
         }
 
-        .k-input-container {
+        .k-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .k-input-row {
             font-family: var(--font-math);
-            font-size: 1.8rem;
+            font-size: 1.9rem;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
             color: var(--ink-main);
         }
 
@@ -253,61 +297,74 @@
 
         .k-input {
             font-family: var(--font-print-hand);
-            font-size: 1.8rem;
+            font-size: 1.85rem;
             color: var(--ink-blue);
             background: transparent;
             border: none;
-            border-bottom: 2px stroke var(--ink-blue);
-            outline: none;
-            width: 110px;
-            text-align: center;
-            padding-bottom: 2px;
             border-bottom: 2px dashed rgba(43, 76, 126, 0.4);
-            transition: border-color 0.2s;
+            outline: none;
+            width: 100px;
+            text-align: center;
+            padding-bottom: 1px;
+            transition: border-color 0.3s ease, color 0.3s ease;
         }
 
         .k-input:focus {
-            border-bottom-color: var(--ink-pink);
+            border-bottom: 2px solid var(--ink-pink);
+            color: var(--ink-pink);
         }
 
-        /* PLAY / PAUSE BUTTONS */
+        .k-hint {
+            font-family: var(--font-print-hand);
+            font-size: 1.05rem;
+            color: var(--ink-subtle);
+            margin-top: 0.15rem;
+        }
+
+        /* PLAYBACK CONTROLS (HANDWRITTEN MINIMAL - NO ENCLOSING LINE/BOX) */
         .playback-controls {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-            margin-top: 0.4rem;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.6rem;
+            margin-bottom: 0.2rem;
         }
 
-        .btn-handwritten {
+        .btn-notebook {
             background: none;
             border: none;
             font-family: var(--font-hand);
-            font-size: 1.4rem;
+            font-size: 1.45rem;
             color: var(--ink-subtle);
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
-            transition: color 0.2s, transform 0.1s;
+            gap: 0.35rem;
+            padding: 0.2rem 0.5rem;
+            transition: color 0.25s ease, transform 0.2s ease;
         }
 
-        .btn-handwritten:hover {
+        .btn-notebook:hover {
             color: var(--ink-blue);
-            transform: scale(1.05);
+            transform: translateY(-1px);
         }
 
-        .btn-handwritten.active {
+        .btn-notebook:active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        .btn-notebook.active {
             color: var(--ink-pink);
             font-weight: 700;
         }
 
-        /* NOTEBOOK STATUS READOUT */
+        /* STATUS READOUT NOTE */
         .status-summary {
             font-family: var(--font-print-hand);
             font-size: 1.15rem;
             color: var(--ink-subtle);
             text-align: center;
-            margin-top: 0.6rem;
             line-height: 1.4;
         }
 
@@ -315,36 +372,53 @@
             color: var(--ink-main);
         }
 
-        /* RESPONSIVE DESIGN */
+        /* FOOTER SIGNATURE */
+        footer {
+            margin-top: 2.2rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .signature {
+            font-family: var(--font-hand);
+            font-size: 1.15rem;
+            color: rgba(122, 137, 153, 0.7);
+            letter-spacing: 0.02em;
+        }
+
+        /* RESPONSIVE LAYOUT */
         @media (max-width: 768px) {
-            .notebook-paper {
-                padding: 1.5rem 1rem 3rem 2.8rem;
+            .notebook-page {
+                padding: 1.8rem 1rem 2.5rem 2.8rem;
             }
-            .notebook-paper::before {
-                left: 2rem;
+            .notebook-page::before {
+                left: 2.1rem;
             }
             h1.notebook-title {
-                font-size: 2.5rem;
+                font-size: 2.6rem;
             }
             .main-equation {
-                font-size: 1.35rem;
+                font-size: 1.4rem;
             }
             .annotation {
-                display: none; /* Hide heavy annotations on tiny screens */
+                display: none; /* Simplify on smaller screens */
+            }
+            .playback-controls {
+                gap: 1.2rem;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="notebook-paper">
+    <div class="notebook-page">
         <div class="content-container">
             
             <header>
                 <div class="title-group">
                     <h1 class="notebook-title">WAVEFORM</h1>
-                    <svg class="title-underline" viewBox="0 0 200 12" preserveAspectRatio="none">
-                        <path d="M 3,7 Q 55,2 105,8 T 197,5" fill="none" stroke="#2B4C7E" stroke-width="2.5" stroke-linecap="round"/>
+                    <svg class="title-underline" viewBox="0 0 200 10" preserveAspectRatio="none">
+                        <path d="M 2,6 Q 50,1 100,7 T 198,4" fill="none" stroke="#2B4C7E" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
                 </div>
                 <div class="notebook-subtitle">mathematical visualization</div>
@@ -363,42 +437,47 @@
                 <canvas id="graphCanvas"></canvas>
 
                 <svg class="annotations-svg" id="annotationsSvg">
-                    <path d="M 580,35 Q 550,60 510,75" fill="none" stroke="#5A4099" stroke-width="1.8" stroke-dasharray="3,3" marker-end="url(#arrow-purple)"/>
-                    <path d="M 110,105 Q 160,110 200,135" fill="none" stroke="#2B4C7E" stroke-width="1.8" stroke-dasharray="4,3" marker-end="url(#arrow-blue)"/>
-                    <path d="M 120,330 Q 150,310 180,320" fill="none" stroke="#E85D75" stroke-width="1.8" marker-end="url(#arrow-pink)"/>
+                    <path d="M 160,32 Q 210,48 245,75" fill="none" stroke="#5A4099" stroke-width="1.6" stroke-dasharray="3,3" marker-end="url(#arrow-purple)"/>
+                    <path d="M 640,40 Q 610,65 570,95" fill="none" stroke="#2B4C7E" stroke-width="1.6" stroke-dasharray="4,3" marker-end="url(#arrow-blue)"/>
+                    <path d="M 125,320 Q 155,305 190,320" fill="none" stroke="#E85D75" stroke-width="1.6" marker-end="url(#arrow-pink)"/>
 
                     <defs>
-                        <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                             <path d="M 0 1 L 10 5 L 0 9 z" fill="#5A4099" />
                         </marker>
-                        <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                             <path d="M 0 1 L 10 5 L 0 9 z" fill="#2B4C7E" />
                         </marker>
-                        <marker id="arrow-pink" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <marker id="arrow-pink" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                             <path d="M 0 1 L 10 5 L 0 9 z" fill="#E85D75" />
                         </marker>
                     </defs>
                 </svg>
 
-                <div class="annotation note-freq">k controls frequency ⚡</div>
                 <div class="annotation note-heart">curious heart envelope</div>
+                <div class="annotation note-freq">k controls frequency →</div>
                 <div class="annotation note-waves">more k → more waves!</div>
 
-                <svg class="ecg-line" width="140" height="30" viewBox="0 0 140 30">
-                    <path d="M 5,15 L 35,15 L 42,5 L 48,25 L 55,10 L 62,20 L 67,15 L 135,15" fill="none" stroke="#E85D75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <div class="ecg-container">
+                    <svg class="ecg-svg" viewBox="0 0 140 30">
+                        <path class="ecg-path" d="M 5,15 L 35,15 L 42,5 L 48,25 L 55,10 L 62,20 L 67,15 L 135,15" />
+                    </svg>
+                </div>
             </div>
 
             <div class="control-section">
-                <div class="k-input-container">
-                    <span class="k-label">k =</span>
-                    <input type="text" id="kInput" class="k-input" value="0" placeholder="0 - 150" autocomplete="off" spellcheck="false">
+                <div class="k-input-group">
+                    <div class="k-input-row">
+                        <span class="k-label">k =</span>
+                        <input type="text" id="kInput" class="k-input" value="0" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="k-hint">Enter K value: 0–150</div>
                 </div>
 
                 <div class="playback-controls">
-                    <button class="btn-handwritten" id="playBtn">▶ play</button>
-                    <button class="btn-handwritten active" id="pauseBtn">Ⅱ pause</button>
-                    <button class="btn-handwritten" id="resetBtn">↺ reset view</button>
+                    <button class="btn-notebook" id="playBtn">▶ Play</button>
+                    <button class="btn-notebook active" id="pauseBtn">Ⅱ Pause</button>
+                    <button class="btn-notebook" id="resetBtn">↻ Reset View</button>
                 </div>
 
                 <div class="status-summary">
@@ -408,6 +487,10 @@
                 </div>
             </div>
 
+            <footer>
+                <div class="signature">© 2026 Created by Jalvant Vekariya</div>
+            </footer>
+
         </div>
     </div>
 
@@ -415,7 +498,7 @@
         (function() {
             'use strict';
 
-            // DOM Elements
+            // DOM References
             const canvas = document.getElementById('graphCanvas');
             const ctx = canvas.getContext('2d');
             const graphWrapper = document.getElementById('graphWrapper');
@@ -432,20 +515,31 @@
             const K_MIN = 0;
             const K_MAX = 150;
 
-            // State
+            // Interpolation State
             let currentK = 0.0;
             let targetK = 0.0;
-            let isAnimatingMode = false;
-            let animDirection = 1;
+            let isPlayActive = false;
+            let playDirection = 1;
 
-            // Viewport Framing
-            let scaleX = 1.0;
-            let scaleY = 1.0;
-            let panX = 0.0;
-            let panY = 0.75;
-            let basePixelsPerUnit = 180;
+            // Viewport & Pan/Zoom Smoothing
+            const DEFAULT_PAN_X = 0.0;
+            const DEFAULT_PAN_Y = 0.72;
+            const DEFAULT_SCALE_X = 1.0;
+            const DEFAULT_SCALE_Y = 1.0;
 
-            // Drag State
+            let currentPanX = DEFAULT_PAN_X;
+            let targetPanX = DEFAULT_PAN_X;
+            let currentPanY = DEFAULT_PAN_Y;
+            let targetPanY = DEFAULT_PAN_Y;
+
+            let currentScaleX = DEFAULT_SCALE_X;
+            let targetScaleX = DEFAULT_SCALE_X;
+            let currentScaleY = DEFAULT_SCALE_Y;
+            let targetScaleY = DEFAULT_SCALE_Y;
+
+            let basePixelsPerUnit = 175;
+
+            // Mouse Drag State
             let isDragging = false;
             let dragStartX = 0, dragStartY = 0;
             let panStartX = 0, panStartY = 0;
@@ -453,21 +547,13 @@
             function init() {
                 setupEventListeners();
                 handleResize();
-                resetView();
-                requestAnimationFrame(loop);
-            }
-
-            function resetView() {
-                panX = 0.0;
-                panY = 0.75;
-                scaleX = 1.0;
-                scaleY = 1.0;
+                requestAnimationFrame(animationLoop);
             }
 
             function handleResize() {
                 const rect = graphWrapper.getBoundingClientRect();
                 const width = Math.min(rect.width, 820);
-                const height = 440;
+                const height = 430;
 
                 const dpr = window.devicePixelRatio || 1;
                 canvas.width = width * dpr;
@@ -485,12 +571,13 @@
                 const centerX = width / 2;
                 const centerY = height / 2;
 
-                const screenX = centerX + (x - panX) * (basePixelsPerUnit * scaleX);
-                const screenY = centerY - (y - panY) * (basePixelsPerUnit * scaleY);
+                const screenX = centerX + (x - currentPanX) * (basePixelsPerUnit * currentScaleX);
+                const screenY = centerY - (y - currentPanY) * (basePixelsPerUnit * currentScaleY);
                 return { x: screenX, y: screenY };
             }
 
-            function evaluateFunction(x, k) {
+            // EXACT MATHEMATICAL FUNCTION
+            function evaluateY(x, k) {
                 const absX = Math.abs(x);
                 const term1 = Math.pow(absX, 2 / 3);
                 const rad = Math.max(0, 3 - x * x);
@@ -501,142 +588,167 @@
             function setupEventListeners() {
                 window.addEventListener('resize', handleResize);
 
-                // K Input Handling
+                // Input handling
                 kInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
-                        validateAndApplyInput();
+                        applyTypedK();
                         kInput.blur();
                     }
                 });
 
-                kInput.addEventListener('blur', validateAndApplyInput);
+                kInput.addEventListener('blur', applyTypedK);
 
-                // Play / Pause / Reset
-                playBtn.addEventListener('click', () => setAnimationMode(true));
-                pauseBtn.addEventListener('click', () => setAnimationMode(false));
-                resetBtn.addEventListener('click', resetView);
+                // Controls
+                playBtn.addEventListener('click', () => setPlayState(true));
+                pauseBtn.addEventListener('click', () => setPlayState(false));
+                resetBtn.addEventListener('click', smoothResetView);
 
-                // Pan / Dragging
+                // Pan Interaction
                 canvas.addEventListener('mousedown', (e) => {
                     isDragging = true;
                     dragStartX = e.clientX;
                     dragStartY = e.clientY;
-                    panStartX = panX;
-                    panStartY = panY;
+                    panStartX = targetPanX;
+                    panStartY = targetPanY;
                 });
 
                 window.addEventListener('mousemove', (e) => {
                     if (!isDragging) return;
                     const dx = e.clientX - dragStartX;
                     const dy = e.clientY - dragStartY;
-                    const unitX = basePixelsPerUnit * scaleX;
-                    const unitY = basePixelsPerUnit * scaleY;
+                    const unitX = basePixelsPerUnit * currentScaleX;
+                    const unitY = basePixelsPerUnit * currentScaleY;
 
-                    panX = panStartX - dx / unitX;
-                    panY = panStartY + dy / unitY;
+                    targetPanX = panStartX - dx / unitX;
+                    targetPanY = panStartY + dy / unitY;
                 });
 
                 window.addEventListener('mouseup', () => { isDragging = false; });
 
-                // Zoom (Mouse Wheel)
+                // Smooth Zoom
                 canvas.addEventListener('wheel', (e) => {
                     e.preventDefault();
-                    const zoom = e.deltaY < 0 ? 1.06 : 0.94;
-                    scaleX = Math.max(0.4, Math.min(10, scaleX * zoom));
-                    scaleY = Math.max(0.4, Math.min(10, scaleY * zoom));
+                    const factor = e.deltaY < 0 ? 1.08 : 0.92;
+                    targetScaleX = Math.max(0.4, Math.min(8, targetScaleX * factor));
+                    targetScaleY = Math.max(0.4, Math.min(8, targetScaleY * factor));
                 }, { passive: false });
             }
 
-            function validateAndApplyInput() {
+            function applyTypedK() {
                 let parsed = parseFloat(kInput.value);
                 if (isNaN(parsed) || !isFinite(parsed)) {
                     parsed = targetK;
                 }
                 parsed = Math.max(K_MIN, Math.min(K_MAX, parsed));
                 targetK = parsed;
-                if (isAnimatingMode) setAnimationMode(false);
+                if (isPlayActive) setPlayState(false);
             }
 
-            function setAnimationMode(active) {
-                isAnimatingMode = active;
+            function setPlayState(active) {
+                isPlayActive = active;
                 if (active) {
                     playBtn.classList.add('active');
                     pauseBtn.classList.remove('active');
                 } else {
                     pauseBtn.classList.add('active');
                     playBtn.classList.remove('active');
-                    targetK = currentK;
+                    targetK = currentK; // Freeze target smoothly at current state
                 }
             }
 
-            function formatNum(n) {
-                return Math.abs(n - Math.round(n)) < 0.001 ? Math.round(n).toString() : n.toFixed(2);
+            function smoothResetView() {
+                targetPanX = DEFAULT_PAN_X;
+                targetPanY = DEFAULT_PAN_Y;
+                targetScaleX = DEFAULT_SCALE_X;
+                targetScaleY = DEFAULT_SCALE_Y;
             }
 
-            function loop() {
-                update();
-                render();
-                requestAnimationFrame(loop);
+            function formatDisplayNum(num) {
+                if (Math.abs(num - Math.round(num)) < 0.001) {
+                    return Math.round(num).toString();
+                }
+                return num.toFixed(2);
             }
 
-            function update() {
-                if (isAnimatingMode) {
-                    targetK += 0.12 * animDirection;
-                    if (targetK >= K_MAX) { targetK = K_MAX; animDirection = -1; }
-                    else if (targetK <= K_MIN) { targetK = K_MIN; animDirection = 1; }
+            // MAIN ANIMATION LOOP
+            function animationLoop() {
+                updateState();
+                renderCanvas();
+                requestAnimationFrame(animationLoop);
+            }
+
+            function updateState() {
+                // Continuous Play Mode Smooth Cycle
+                if (isPlayActive) {
+                    targetK += 0.14 * playDirection;
+                    if (targetK >= K_MAX) {
+                        targetK = K_MAX;
+                        playDirection = -1;
+                    } else if (targetK <= K_MIN) {
+                        targetK = K_MIN;
+                        playDirection = 1;
+                    }
                 }
 
-                // Smooth Morph Interpolation
-                const diff = targetK - currentK;
-                if (Math.abs(diff) > 0.0001) {
-                    currentK += diff * 0.08;
+                // Smooth Interpolation for K (Controlled Easing)
+                const kDiff = targetK - currentK;
+                if (Math.abs(kDiff) > 0.0001) {
+                    currentK += kDiff * 0.06;
                 } else {
                     currentK = targetK;
                 }
 
-                const formatted = formatNum(currentK);
-                eqK.textContent = formatted;
+                // Smooth Viewport Interpolation
+                currentPanX += (targetPanX - currentPanX) * 0.1;
+                currentPanY += (targetPanY - currentPanY) * 0.1;
+                currentScaleX += (targetScaleX - currentScaleX) * 0.1;
+                currentScaleY += (targetScaleY - currentScaleY) * 0.1;
+
+                // Sync UI Displays
+                const formattedStr = formatDisplayNum(currentK);
+                eqK.textContent = formattedStr;
                 readoutK.textContent = currentK.toFixed(2);
 
-                if (document.activeElement !== kInput && !isAnimatingMode) {
-                    kInput.value = formatted;
+                if (document.activeElement !== kInput && !isPlayActive) {
+                    kInput.value = formattedStr;
                 }
 
-                if (isAnimatingMode) {
-                    readoutState.textContent = 'animating...';
-                } else if (Math.abs(targetK - currentK) > 0.01) {
+                // Determine State Label
+                if (isPlayActive) {
+                    readoutState.textContent = 'animating';
+                } else if (Math.abs(targetK - currentK) > 0.02) {
                     readoutState.textContent = 'morphing';
                 } else {
                     readoutState.textContent = currentK === 0 ? 'ready' : 'stable';
                 }
             }
 
-            function render() {
+            function renderCanvas() {
                 const width = canvas.offsetWidth;
                 const height = canvas.offsetHeight;
 
                 ctx.clearRect(0, 0, width, height);
 
-                drawNotebookAxes(width, height);
-                drawInkWaveform();
+                drawGridAndAxes(width, height);
+                drawWaveformCurve();
             }
 
-            // HAND-DRAWN STYLE AXES & GRID
-            function drawNotebookAxes(width, height) {
+            // ORGANIC NOTEBOOK AXES & GRID
+            function drawGridAndAxes(width, height) {
                 ctx.save();
 
-                const pxPerUnitX = basePixelsPerUnit * scaleX;
-                const pxPerUnitY = basePixelsPerUnit * scaleY;
+                const pxPerUnitX = basePixelsPerUnit * currentScaleX;
+                const pxPerUnitY = basePixelsPerUnit * currentScaleY;
 
-                const minMathX = panX - (width / 2) / pxPerUnitX;
-                const maxMathX = panX + (width / 2) / pxPerUnitX;
-                const minMathY = panY - (height / 2) / pxPerUnitY;
-                const maxMathY = panY + (height / 2) / pxPerUnitY;
+                const minMathX = currentPanX - (width / 2) / pxPerUnitX;
+                const maxMathX = currentPanX + (width / 2) / pxPerUnitX;
+                const minMathY = currentPanY - (height / 2) / pxPerUnitY;
+                const maxMathY = currentPanY + (height / 2) / pxPerUnitY;
 
                 let step = 0.5;
-                if (pxPerUnitX < 80) step = 1.0;
+                if (pxPerUnitX < 75) step = 1.0;
 
-                // Faint Pencil Grid
+                // Very faint grid lines
                 ctx.strokeStyle = "rgba(43, 76, 126, 0.06)";
                 ctx.lineWidth = 1;
 
@@ -644,8 +756,7 @@
                 for (let x = firstX; x <= maxMathX; x += step) {
                     const pt = mathToScreen(x, 0);
                     ctx.beginPath();
-                    ctx.moveTo(pt.x, 0);
-                    ctx.lineTo(pt.x, height);
+                    ctx.moveTo(pt.x, 0); ctx.lineTo(pt.x, height);
                     ctx.stroke();
                 }
 
@@ -653,60 +764,56 @@
                 for (let y = firstY; y <= maxMathY; y += step) {
                     const pt = mathToScreen(0, y);
                     ctx.beginPath();
-                    ctx.moveTo(0, pt.y);
-                    ctx.lineTo(width, pt.y);
+                    ctx.moveTo(0, pt.y); ctx.lineTo(width, pt.y);
                     ctx.stroke();
                 }
 
-                // Main Axes (Organic Hand-Drawn Blue Ink Pen Strokes)
+                // Main Axes (Soft Hand-Drawn Ink Lines)
                 const origin = mathToScreen(0, 0);
                 ctx.strokeStyle = "#2B4C7E";
-                ctx.lineWidth = 1.8;
+                ctx.lineWidth = 1.7;
                 ctx.font = "16px 'Caveat', cursive";
                 ctx.fillStyle = "#2B4C7E";
 
-                // X-Axis
-                if (origin.y >= 0 && origin.y <= height) {
+                // Horizontal Axis
+                if (origin.y >= -20 && origin.y <= height + 20) {
                     ctx.beginPath();
-                    // Slight organic curve offset to feel hand-drawn
                     ctx.moveTo(0, origin.y + 0.5);
-                    ctx.quadraticCurveTo(width / 2, origin.y - 1, width, origin.y + 0.5);
+                    ctx.quadraticCurveTo(width * 0.5, origin.y - 0.8, width, origin.y + 0.5);
                     ctx.stroke();
 
-                    // X-Axis Arrow
+                    // Arrow
                     ctx.beginPath();
-                    ctx.moveTo(width - 12, origin.y - 5);
+                    ctx.moveTo(width - 12, origin.y - 4);
                     ctx.lineTo(width - 2, origin.y);
-                    ctx.lineTo(width - 12, origin.y + 5);
+                    ctx.lineTo(width - 12, origin.y + 4);
                     ctx.stroke();
 
-                    // Label 'x'
-                    ctx.fillText("x", width - 18, origin.y - 10);
+                    ctx.fillText("x", width - 16, origin.y - 9);
                 }
 
-                // Y-Axis
-                if (origin.x >= 0 && origin.x <= width) {
+                // Vertical Axis
+                if (origin.x >= -20 && origin.x <= width + 20) {
                     ctx.beginPath();
                     ctx.moveTo(origin.x + 0.5, height);
-                    ctx.quadraticCurveTo(origin.x - 1, height / 2, origin.x + 0.5, 0);
+                    ctx.quadraticCurveTo(origin.x - 0.8, height * 0.5, origin.x + 0.5, 0);
                     ctx.stroke();
 
-                    // Y-Axis Arrow
+                    // Arrow
                     ctx.beginPath();
-                    ctx.moveTo(origin.x - 5, 12);
+                    ctx.moveTo(origin.x - 4, 12);
                     ctx.lineTo(origin.x, 2);
-                    ctx.lineTo(origin.x + 5, 12);
+                    ctx.lineTo(origin.x + 4, 12);
                     ctx.stroke();
 
-                    // Label 'y'
-                    ctx.fillText("y", origin.x + 10, 18);
+                    ctx.fillText("y", origin.x + 10, 16);
                 }
 
-                // Handwritten Tick Labels
+                // Axis Tick Numerical Labels
                 for (let x = firstX; x <= maxMathX; x += step) {
                     if (Math.abs(x) > 0.05) {
                         const pt = mathToScreen(x, 0);
-                        const labelY = Math.max(25, Math.min(height - 15, origin.y + 18));
+                        const labelY = Math.max(22, Math.min(height - 10, origin.y + 18));
                         ctx.textAlign = "center";
                         ctx.fillText(x.toFixed(x % 1 === 0 ? 0 : 1), pt.x, labelY);
                     }
@@ -715,66 +822,67 @@
                 for (let y = firstY; y <= maxMathY; y += step) {
                     if (Math.abs(y) > 0.05) {
                         const pt = mathToScreen(0, y);
-                        const labelX = Math.max(15, Math.min(width - 20, origin.x - 12));
+                        const labelX = Math.max(12, Math.min(width - 18, origin.x - 10));
                         ctx.textAlign = "right";
                         ctx.fillText(y.toFixed(y % 1 === 0 ? 0 : 1), labelX, pt.y + 4);
                     }
                 }
 
-                // Domain Boundary Vertical Dashed Lines
-                ctx.strokeStyle = "rgba(232, 93, 117, 0.4)";
+                // Domain Limit Vertical Dashed Lines (−√3 and √3)
+                ctx.strokeStyle = "rgba(232, 93, 117, 0.38)";
                 ctx.setLineDash([4, 4]);
 
-                const leftX = mathToScreen(-SQRT_3, 0).x;
-                const rightX = mathToScreen(SQRT_3, 0).x;
+                const leftBoundaryX = mathToScreen(-SQRT_3, 0).x;
+                const rightBoundaryX = mathToScreen(SQRT_3, 0).x;
 
                 ctx.beginPath();
-                ctx.moveTo(leftX, 0); ctx.lineTo(leftX, height);
-                ctx.moveTo(rightX, 0); ctx.lineTo(rightX, height);
+                ctx.moveTo(leftBoundaryX, 0); ctx.lineTo(leftBoundaryX, height);
+                ctx.moveTo(rightBoundaryX, 0); ctx.lineTo(rightBoundaryX, height);
                 ctx.stroke();
 
                 ctx.restore();
             }
 
-            // INK WAVEFORM DRAWING
-            function drawInkWaveform() {
+            // ACCURATE WAVEFORM RENDERING
+            function drawWaveformCurve() {
                 ctx.save();
 
-                const samples = Math.max(1000, Math.ceil(currentK * 18));
-                const step = (2 * SQRT_3) / samples;
+                // Adaptive sampling to maintain resolution at high K
+                const sampleCount = Math.max(1200, Math.ceil(currentK * 20));
+                const step = (2 * SQRT_3) / sampleCount;
 
                 ctx.beginPath();
-                let first = true;
+                let started = false;
 
-                for (let i = 0; i <= samples; i++) {
+                for (let i = 0; i <= sampleCount; i++) {
                     const x = -SQRT_3 + i * step;
-                    const y = evaluateFunction(x, currentK);
+                    const y = evaluateY(x, currentK);
                     const pt = mathToScreen(x, y);
 
-                    if (first) {
+                    if (!started) {
                         ctx.moveTo(pt.x, pt.y);
-                        first = false;
+                        started = true;
                     } else {
                         ctx.lineTo(pt.x, pt.y);
                     }
                 }
 
-                // Layer 1: Soft Fountain Pen Ink Under-Bleed
-                ctx.strokeStyle = currentK > 20 ? "rgba(90, 64, 153, 0.35)" : "rgba(43, 76, 126, 0.25)";
-                ctx.lineWidth = 4.5;
+                // Layer 1: Soft Fountain Pen Under-Bleed Effect
+                ctx.strokeStyle = currentK > 40 ? "rgba(90, 64, 153, 0.28)" : "rgba(43, 76, 126, 0.22)";
+                ctx.lineWidth = 4.2;
                 ctx.lineCap = "round";
                 ctx.lineJoin = "round";
                 ctx.stroke();
 
-                // Layer 2: Core Rich Ink Stroke (Pink / Violet Accent for high K)
-                ctx.strokeStyle = currentK > 30 ? "#E85D75" : "#2B4C7E";
-                ctx.lineWidth = 2.0;
+                // Layer 2: Main Fountain Pen Core Line
+                ctx.strokeStyle = currentK > 50 ? "#5A4099" : (currentK > 15 ? "#2B4C7E" : "#1C2434");
+                ctx.lineWidth = 1.9;
                 ctx.stroke();
 
                 ctx.restore();
             }
 
-            // Run
+            // Start system
             init();
         })();
     </script>
