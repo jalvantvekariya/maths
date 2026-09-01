@@ -42,7 +42,7 @@
             overflow-y: auto;
         }
 
-        /* REALISTIC RULED NOTEBOOK PAPER BACKGROUND */
+        /* RULED NOTEBOOK PAPER BACKGROUND */
         .notebook-page {
             min-height: 100vh;
             width: 100%;
@@ -175,7 +175,7 @@
             position: relative;
             display: flex;
             justify-content: center;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.5rem;
         }
 
         canvas {
@@ -265,12 +265,12 @@
             100% { stroke-dashoffset: -220; opacity: 0.2; }
         }
 
-        /* CENTERED K CONTROLS & INPUT */
+        /* CENTERED K INPUT & STATUS READOUT ONLY */
         .control-section {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.8rem;
             width: 100%;
         }
 
@@ -303,7 +303,7 @@
             border: none;
             border-bottom: 2px dashed rgba(43, 76, 126, 0.4);
             outline: none;
-            width: 100px;
+            width: 110px;
             text-align: center;
             padding-bottom: 1px;
             transition: border-color 0.3s ease, color 0.3s ease;
@@ -316,56 +316,19 @@
 
         .k-hint {
             font-family: var(--font-print-hand);
-            font-size: 1.05rem;
+            font-size: 1.1rem;
             color: var(--ink-subtle);
-            margin-top: 0.15rem;
+            margin-top: 0.25rem;
         }
 
-        /* PLAYBACK CONTROLS (HANDWRITTEN MINIMAL - NO ENCLOSING LINE/BOX) */
-        .playback-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 0.6rem;
-            margin-bottom: 0.2rem;
-        }
-
-        .btn-notebook {
-            background: none;
-            border: none;
-            font-family: var(--font-hand);
-            font-size: 1.45rem;
-            color: var(--ink-subtle);
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.2rem 0.5rem;
-            transition: color 0.25s ease, transform 0.2s ease;
-        }
-
-        .btn-notebook:hover {
-            color: var(--ink-blue);
-            transform: translateY(-1px);
-        }
-
-        .btn-notebook:active {
-            transform: translateY(0) scale(0.97);
-        }
-
-        .btn-notebook.active {
-            color: var(--ink-pink);
-            font-weight: 700;
-        }
-
-        /* STATUS READOUT NOTE */
+        /* STATUS SUMMARY NOTE */
         .status-summary {
             font-family: var(--font-print-hand);
             font-size: 1.15rem;
             color: var(--ink-subtle);
             text-align: center;
             line-height: 1.4;
+            margin-top: 0.4rem;
         }
 
         .status-summary span {
@@ -374,7 +337,7 @@
 
         /* FOOTER SIGNATURE */
         footer {
-            margin-top: 2.2rem;
+            margin-top: 3rem;
             margin-bottom: 0.5rem;
             text-align: center;
         }
@@ -382,7 +345,7 @@
         .signature {
             font-family: var(--font-hand);
             font-size: 1.15rem;
-            color: rgba(122, 137, 153, 0.7);
+            color: rgba(122, 137, 153, 0.75);
             letter-spacing: 0.02em;
         }
 
@@ -401,10 +364,7 @@
                 font-size: 1.4rem;
             }
             .annotation {
-                display: none; /* Simplify on smaller screens */
-            }
-            .playback-controls {
-                gap: 1.2rem;
+                display: none;
             }
         }
     </style>
@@ -474,12 +434,6 @@
                     <div class="k-hint">Enter K value: 0–150</div>
                 </div>
 
-                <div class="playback-controls">
-                    <button class="btn-notebook" id="playBtn">▶ Play</button>
-                    <button class="btn-notebook active" id="pauseBtn">Ⅱ Pause</button>
-                    <button class="btn-notebook" id="resetBtn">↻ Reset View</button>
-                </div>
-
                 <div class="status-summary">
                     k = <span id="readoutK">0.00</span> &nbsp;|&nbsp; 
                     domain: <span>[-1.732, 1.732]</span> &nbsp;|&nbsp; 
@@ -506,9 +460,6 @@
             const eqK = document.getElementById('eqK');
             const readoutK = document.getElementById('readoutK');
             const readoutState = document.getElementById('readoutState');
-            const playBtn = document.getElementById('playBtn');
-            const pauseBtn = document.getElementById('pauseBtn');
-            const resetBtn = document.getElementById('resetBtn');
 
             // Math Constants
             const SQRT_3 = Math.sqrt(3);
@@ -518,10 +469,8 @@
             // Interpolation State
             let currentK = 0.0;
             let targetK = 0.0;
-            let isPlayActive = false;
-            let playDirection = 1;
 
-            // Viewport & Pan/Zoom Smoothing
+            // Viewport & Pan/Zoom
             const DEFAULT_PAN_X = 0.0;
             const DEFAULT_PAN_Y = 0.72;
             const DEFAULT_SCALE_X = 1.0;
@@ -598,11 +547,6 @@
 
                 kInput.addEventListener('blur', applyTypedK);
 
-                // Controls
-                playBtn.addEventListener('click', () => setPlayState(true));
-                pauseBtn.addEventListener('click', () => setPlayState(false));
-                resetBtn.addEventListener('click', smoothResetView);
-
                 // Pan Interaction
                 canvas.addEventListener('mousedown', (e) => {
                     isDragging = true;
@@ -625,7 +569,7 @@
 
                 window.addEventListener('mouseup', () => { isDragging = false; });
 
-                // Smooth Zoom
+                // Zoom Interaction
                 canvas.addEventListener('wheel', (e) => {
                     e.preventDefault();
                     const factor = e.deltaY < 0 ? 1.08 : 0.92;
@@ -641,26 +585,6 @@
                 }
                 parsed = Math.max(K_MIN, Math.min(K_MAX, parsed));
                 targetK = parsed;
-                if (isPlayActive) setPlayState(false);
-            }
-
-            function setPlayState(active) {
-                isPlayActive = active;
-                if (active) {
-                    playBtn.classList.add('active');
-                    pauseBtn.classList.remove('active');
-                } else {
-                    pauseBtn.classList.add('active');
-                    playBtn.classList.remove('active');
-                    targetK = currentK; // Freeze target smoothly at current state
-                }
-            }
-
-            function smoothResetView() {
-                targetPanX = DEFAULT_PAN_X;
-                targetPanY = DEFAULT_PAN_Y;
-                targetScaleX = DEFAULT_SCALE_X;
-                targetScaleY = DEFAULT_SCALE_Y;
             }
 
             function formatDisplayNum(num) {
@@ -678,19 +602,7 @@
             }
 
             function updateState() {
-                // Continuous Play Mode Smooth Cycle
-                if (isPlayActive) {
-                    targetK += 0.14 * playDirection;
-                    if (targetK >= K_MAX) {
-                        targetK = K_MAX;
-                        playDirection = -1;
-                    } else if (targetK <= K_MIN) {
-                        targetK = K_MIN;
-                        playDirection = 1;
-                    }
-                }
-
-                // Smooth Interpolation for K (Controlled Easing)
+                // Smooth Interpolation for K Morphing
                 const kDiff = targetK - currentK;
                 if (Math.abs(kDiff) > 0.0001) {
                     currentK += kDiff * 0.06;
@@ -709,14 +621,12 @@
                 eqK.textContent = formattedStr;
                 readoutK.textContent = currentK.toFixed(2);
 
-                if (document.activeElement !== kInput && !isPlayActive) {
+                if (document.activeElement !== kInput) {
                     kInput.value = formattedStr;
                 }
 
                 // Determine State Label
-                if (isPlayActive) {
-                    readoutState.textContent = 'animating';
-                } else if (Math.abs(targetK - currentK) > 0.02) {
+                if (Math.abs(targetK - currentK) > 0.02) {
                     readoutState.textContent = 'morphing';
                 } else {
                     readoutState.textContent = currentK === 0 ? 'ready' : 'stable';
@@ -748,7 +658,7 @@
                 let step = 0.5;
                 if (pxPerUnitX < 75) step = 1.0;
 
-                // Very faint grid lines
+                // Very faint pencil grid lines
                 ctx.strokeStyle = "rgba(43, 76, 126, 0.06)";
                 ctx.lineWidth = 1;
 
